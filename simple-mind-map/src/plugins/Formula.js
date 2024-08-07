@@ -18,7 +18,8 @@ class Formula {
     const config = {
       throwOnError: false,
       errorColor: '#f00',
-      output: 'mathml' // 默认只输出公式
+      // output: 'mathml', // 默认只输出公式
+      displayMode: true
     }
     // Chrome内核100以下，mathml配置公式无法正确渲染
     const chromeVersion = getChromeVersion()

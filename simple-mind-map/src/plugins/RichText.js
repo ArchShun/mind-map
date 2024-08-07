@@ -104,7 +104,9 @@ class RichText {
         word-break: break-all;
       }
 
-      .katex { font-size: 1.1em; }
+      .katex { 
+        font-size: 1.1em;
+      }
 
       .katex mtable mtr mrow {
         margin: 0.2em;
@@ -112,6 +114,17 @@ class RichText {
 
       .katex mtext {
         font-size: 0.9em;
+      }
+        
+      .katex, .katex-display,.katex,.katex-html{
+        display: inline-block !important; 
+        position: relative;
+      }
+      .katex-display{
+        margin: .1em !important;
+      }
+      .katex math{
+        display: inline-block !important; 
       }
 
       .smm-richtext-node-wrap p {
@@ -285,7 +298,7 @@ class RichText {
     // 节点文本内容
     let nodeText = node.getData('text')
     // 将公式节点转换为 latex 格式，方便修改
-    nodeText = this.latexRichToText(nodeText);
+    nodeText = this.latexRichToText(nodeText)
     // 是否是空文本
     const isEmptyText = isUndef(nodeText)
     // 是否是非空的非富文本
@@ -320,65 +333,79 @@ class RichText {
 
   // 隐藏公式自动补全控件
   hideLatexAutoPanel() {
-    this.latexAuto.index = -1;
-    let div = document.querySelector('.latex-auto-panel');
+    this.latexAuto.index = -1
+    let div = document.querySelector('.latex-auto-panel')
     if (div !== null) div.style.display = 'none'
   }
 
   // 渲染公式自动补全面板
   renderLatexAutoPanel() {
     let liStr = this.latexAuto.list
-      .map((x, i) => `<li class="${i === this.latexAuto.index ? 'active' : ''}">
+      .map(
+        (x, i) => `<li class="${i === this.latexAuto.index ? 'active' : ''}">
         <span>\\${x.tag}</span>
         <span>${x.icon}</span>
-      </li>`)
+      </li>`
+      )
       .reduce((acc, cur) => acc + cur, '')
-    let div = document.querySelector('.latex-auto-panel');
-    if (div === null) div = this.addLatexAutoPanel();
-    div.querySelector('ul').innerHTML = liStr;
-    document.querySelector('.latex-auto-panel').style.display = '';
+    let div = document.querySelector('.latex-auto-panel')
+    if (div === null) div = this.addLatexAutoPanel()
+    div.querySelector('ul').innerHTML = liStr
+    document.querySelector('.latex-auto-panel').style.display = ''
     // 激活项保持在可视范围内
     const element = div.querySelector('.latex-auto-panel li.active')
-    if (element && element.scrollIntoViewIfNeeded) element.scrollIntoViewIfNeeded();
-    else if (element && element.scrollIntoView) element.scrollIntoView();
+    if (element && element.scrollIntoViewIfNeeded)
+      element.scrollIntoViewIfNeeded()
+    else if (element && element.scrollIntoView) element.scrollIntoView()
   }
 
   // 查询latex公式自动补全
   setLatexAutoPanelContent() {
-    if (this.latexAuto.word.length < 1) return this.hideLatexAutoPanel();
+    if (this.latexAuto.word.length < 1) return this.hideLatexAutoPanel()
     const k = this.latexAuto.word.substring(1)
-    const tmp = latexList.reduce((res, x) => {
-      if (x.tag.startsWith(k)) res[0].push(x)
-      else if (x.tag.indexOf(k) > -1) res[1].push(x)
-      return res;
-    }, [[], []])
-    this.latexAuto.list = tmp[0].sort((a, b) => b.sort - a.sort).concat(tmp[1].sort((a, b) => b.sort - a.sort))
-    if (this.latexAuto.list.length == 0) return this.hideLatexAutoPanel();
-    this.latexAuto.index = 0;
-    this.renderLatexAutoPanel();
+    const tmp = latexList.reduce(
+      (res, x) => {
+        if (x.tag.startsWith(k)) res[0].push(x)
+        else if (x.tag.indexOf(k) > -1) res[1].push(x)
+        return res
+      },
+      [[], []]
+    )
+    this.latexAuto.list = tmp[0]
+      .sort((a, b) => b.sort - a.sort)
+      .concat(tmp[1].sort((a, b) => b.sort - a.sort))
+    if (this.latexAuto.list.length == 0) return this.hideLatexAutoPanel()
+    this.latexAuto.index = 0
+    this.renderLatexAutoPanel()
   }
 
   // 添加公式自动补全面板
   addLatexAutoPanel() {
-    let div = document.createElement('div');
+    let div = document.createElement('div')
     let innerHTML = `
         <div class="latex-auto-panel" style="display:none;">
           <ul></ul>
-        </div>`;
-    div.innerHTML = innerHTML;
-    document.querySelector('.ql-editor').parentNode.appendChild(div);
-    return div;
+        </div>`
+    div.innerHTML = innerHTML
+    document.querySelector('.ql-editor').parentNode.appendChild(div)
+    return div
   }
 
   latexRichToText(nodeText) {
     if (nodeText.indexOf('class="ql-formula"') !== -1) {
-      var parser = new DOMParser();
-      var doc = parser.parseFromString(nodeText, "text/html");
-      var els = doc.getElementsByClassName('ql-formula');
+      var parser = new DOMParser()
+      var doc = parser.parseFromString(nodeText, 'text/html')
+      var els = doc.getElementsByClassName('ql-formula')
       for (const el of els)
-        nodeText = nodeText.replace(el.outerHTML, `\$${el.getAttribute('data-value').replaceAll('<', '&lt;').replaceAll('>', '&gt;')}\$`)
+        nodeText = nodeText.replace(
+          el.outerHTML,
+          `$${el
+            .getAttribute('data-value')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')}$`
+        )
     }
-    return nodeText;
+    return nodeText
   }
 
   // 获取编辑区域的背景填充
@@ -427,28 +454,27 @@ class RichText {
 
   // 使用格式化的 latex 字符串内容更新 quill 内容：输入 $*****$
   formatLatex() {
-    const contents = this.quill.getContents();
-    const ops = contents.ops;
-    let mod = false;
+    const contents = this.quill.getContents()
+    const ops = contents.ops
+    let mod = false
     for (let i = ops.length - 1; i >= 0; i--) {
       const op = ops[i]
       if (op.insert && typeof op.insert !== 'object' && op.insert !== '\n') {
         if (/\$.+?\$/g.test(op.insert)) {
-          const m = [...op.insert.matchAll(/\$.+?\$/g)];
-          let arr = op.insert.split(/\$.+?\$/g);
+          const m = [...op.insert.matchAll(/\$.+?\$/g)]
+          let arr = op.insert.split(/\$.+?\$/g)
           for (let j = m.length - 1; j >= 0; j--) {
-            const exp = m[j]?.[0].slice(1, -1) ?? null;  // $...$ 之间的表达式
+            const exp = m[j]?.[0].slice(1, -1) ?? null // $...$ 之间的表达式
             if (exp !== null && exp.trim().length > 0) {
-              arr.splice(j + 1, 0, { 'insert': { 'formula': exp } }) // 添加到对应位置之后
-              mod = true;
-            }
-            else arr.splice(j + 1, 0, "")  // 表达式为空时，占位
+              arr.splice(j + 1, 0, { insert: { formula: exp } }) // 添加到对应位置之后
+              mod = true
+            } else arr.splice(j + 1, 0, '') // 表达式为空时，占位
           }
           while (arr.length > 0) {
-            let v = arr.pop();
+            let v = arr.pop()
             if (typeof v === 'string') {
-              if (v.length < 1) continue;
-              v = { 'insert': v }
+              if (v.length < 1) continue
+              v = { insert: v }
             }
             v['attributes'] = ops[i]['attributes']
             ops.splice(i + 1, 0, v)
@@ -458,7 +484,6 @@ class RichText {
       }
     }
     if (mod) this.quill.setContents(contents)
-
   }
 
   // 隐藏文本编辑控件，即完成编辑
@@ -466,7 +491,7 @@ class RichText {
     if (!this.showTextEdit) {
       return
     }
-    this.formatLatex();
+    this.formatLatex()
     let html = this.getEditText()
     let list =
       nodes && nodes.length > 0 ? nodes : this.mindMap.renderer.activeNodeList
@@ -488,7 +513,7 @@ class RichText {
 
   // 初始化Quill富文本编辑器
   initQuillEditor() {
-    const that = this;
+    const that = this
     this.quill = new Quill(this.textEditNode, {
       modules: {
         toolbar: false,
@@ -497,28 +522,42 @@ class RichText {
             uparrow: {
               key: 38,
               handler: function (e) {
-                if (that.latexAuto.list.length == 0 || that.latexAuto.index == -1) return true; // 默认行为
-                that.latexAuto.index -= 1;
-                that.renderLatexAutoPanel();
+                if (
+                  that.latexAuto.list.length == 0 ||
+                  that.latexAuto.index == -1
+                )
+                  return true // 默认行为
+                that.latexAuto.index -= 1
+                that.renderLatexAutoPanel()
               }
             },
             downarrow: {
               key: 40,
               handler: function (e) {
-                if (that.latexAuto.list.length == 0) return true; // 默认行为
-                if (that.latexAuto.index < that.latexAuto.list.length - 1) that.latexAuto.index += 1;
-                that.renderLatexAutoPanel();
+                if (that.latexAuto.list.length == 0) return true // 默认行为
+                if (that.latexAuto.index < that.latexAuto.list.length - 1)
+                  that.latexAuto.index += 1
+                that.renderLatexAutoPanel()
               }
             },
             space: {
               key: 32,
               handler: function (e) {
-                if (that.latexAuto.index == -1 || that.latexAuto.index >= that.latexAuto.list.length) return true; // 默认行为
-                let cmd = that.latexAuto.list[that.latexAuto.index]?.cmd;
+                if (
+                  that.latexAuto.index == -1 ||
+                  that.latexAuto.index >= that.latexAuto.list.length
+                )
+                  return true // 默认行为
+                let cmd = that.latexAuto.list[that.latexAuto.index]?.cmd
                 if (cmd) {
-                  that.latexAuto.list[that.latexAuto.index].sort = that.latexAuto.list[that.latexAuto.index].sort + 1;
-                  that.quill.insertText(e.index, cmd.slice(that.latexAuto.word.length - 1), 'api');
-                  that.hideLatexAutoPanel();
+                  that.latexAuto.list[that.latexAuto.index].sort =
+                    that.latexAuto.list[that.latexAuto.index].sort + 1
+                  that.quill.insertText(
+                    e.index,
+                    cmd.slice(that.latexAuto.word.length - 1),
+                    'api'
+                  )
+                  that.hideLatexAutoPanel()
                 }
               }
             },
@@ -573,11 +612,14 @@ class RichText {
         this.mindMap.emit('rich_text_selection_change', false, null, null)
       }
     })
-    this.quill.on('text-change', (e) => {
+    this.quill.on('text-change', e => {
       // 根据输入字符自动补全公式
       if (e?.ops?.length > 1)
         if (e?.ops?.[1]?.delete > 0 && this.latexAuto.word.length > 0)
-          this.latexAuto.word = this.latexAuto.word.slice(0, -(e?.ops?.[1]?.delete))
+          this.latexAuto.word = this.latexAuto.word.slice(
+            0,
+            -e?.ops?.[1]?.delete
+          )
         else if (typeof e?.ops?.[1]?.insert === 'string') {
           const le = e.ops[1].insert.trim()
           if (le === '') this.latexAuto.word = ''
