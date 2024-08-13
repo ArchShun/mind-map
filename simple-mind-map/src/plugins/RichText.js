@@ -550,11 +550,13 @@ class RichText {
                     that.latexAuto.list[that.latexAuto.index].sort + 1
                   const w = that.latexAuto.word
                   that.quill.insertText(e.index, cmd.slice(w.length - 1), 'api')
+                  that.quill.deleteText(that.quill.getSelection().index - 1, 1)
                   const i = cmd.search(/(?<=\{.*?)\s+?(?=.*?\})|\{\}/g)
                   if (i > -1)
                     that.quill.setSelection(e.index - w.length + i + 2)
                   that.hideLatexAutoPanel()
                 }
+                return false // 阻止默认行为
               }
             },
             enter: {
