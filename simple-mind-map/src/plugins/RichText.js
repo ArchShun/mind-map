@@ -104,10 +104,6 @@ class RichText {
         word-break: break-all;
       }
 
-      .katex { 
-        font-size: 1.1em;
-      }
-
       .katex mtable mtr mrow {
         margin: 0.2em;
       }
@@ -552,11 +548,11 @@ class RichText {
                 if (cmd) {
                   that.latexAuto.list[that.latexAuto.index].sort =
                     that.latexAuto.list[that.latexAuto.index].sort + 1
-                  that.quill.insertText(
-                    e.index,
-                    cmd.slice(that.latexAuto.word.length - 1),
-                    'api'
-                  )
+                  const w = that.latexAuto.word
+                  that.quill.insertText(e.index, cmd.slice(w.length - 1), 'api')
+                  const i = cmd.search(/(?<=\{.*?)\s+?(?=.*?\})|\{\}/g)
+                  if (i > -1)
+                    that.quill.setSelection(e.index - w.length + i + 2)
                   that.hideLatexAutoPanel()
                 }
               }
