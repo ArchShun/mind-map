@@ -1,11 +1,5 @@
 <template>
-  <div
-    class="editContainer"
-    @dragenter.stop.prevent="onDragenter"
-    @dragleave.stop.prevent
-    @dragover.stop.prevent
-    @drop.stop.prevent
-  >
+  <div class="editContainer" @dragenter.stop.prevent="onDragenter" @dragleave.stop.prevent @dragover.stop.prevent @drop.stop.prevent>
     <div class="mindMapContainer" ref="mindMapContainer"></div>
     <Count :mindMap="mindMap" v-if="!isZenMode"></Count>
     <Navigator :mindMap="mindMap"></Navigator>
@@ -18,10 +12,7 @@
     <ShortcutKey></ShortcutKey>
     <Contextmenu v-if="mindMap" :mindMap="mindMap"></Contextmenu>
     <RichTextToolbar v-if="mindMap" :mindMap="mindMap"></RichTextToolbar>
-    <NodeNoteContentShow
-      v-if="mindMap"
-      :mindMap="mindMap"
-    ></NodeNoteContentShow>
+    <NodeNoteContentShow v-if="mindMap" :mindMap="mindMap"></NodeNoteContentShow>
     <NodeAttachment v-if="mindMap" :mindMap="mindMap"></NodeAttachment>
     <NodeImgPreview v-if="mindMap" :mindMap="mindMap"></NodeImgPreview>
     <SidebarTrigger v-if="!isZenMode"></SidebarTrigger>
@@ -32,13 +23,7 @@
     <Scrollbar v-if="isShowScrollbar && mindMap" :mindMap="mindMap"></Scrollbar>
     <FormulaSidebar v-if="mindMap" :mindMap="mindMap"></FormulaSidebar>
     <SourceCodeEdit v-if="mindMap" :mindMap="mindMap"></SourceCodeEdit>
-    <div
-      class="dragMask"
-      v-if="showDragMask"
-      @dragleave.stop.prevent="onDragleave"
-      @dragover.stop.prevent
-      @drop.stop.prevent="onDrop"
-    >
+    <div class="dragMask" v-if="showDragMask" @dragleave.stop.prevent="onDragleave" @dragover.stop.prevent @drop.stop.prevent="onDrop">
       <div class="dragTip">{{ $t('edit.dragTip') }}</div>
     </div>
   </div>
@@ -490,35 +475,35 @@ export default {
       this.mindMap.keyCommand.addShortcut('Control+s', () => {
         this.manualSave()
       })
-      // 转发事件
-      ;[
-        'node_active',
-        'data_change',
-        'view_data_change',
-        'back_forward',
-        'node_contextmenu',
-        'node_click',
-        'draw_click',
-        'expand_btn_click',
-        'svg_mousedown',
-        'mouseup',
-        'mode_change',
-        'node_tree_render_end',
-        'rich_text_selection_change',
-        'transforming-dom-to-images',
-        'generalization_node_contextmenu',
-        'painter_start',
-        'painter_end',
-        'scrollbar_change',
-        'scale',
-        'translate',
-        'node_attachmentClick',
-        'node_attachmentContextmenu'
-      ].forEach(event => {
-        this.mindMap.on(event, (...args) => {
-          this.$bus.$emit(event, ...args)
+        // 转发事件
+        ;[
+          'node_active',
+          'data_change',
+          'view_data_change',
+          'back_forward',
+          'node_contextmenu',
+          'node_click',
+          'draw_click',
+          'expand_btn_click',
+          'svg_mousedown',
+          'mouseup',
+          'mode_change',
+          'node_tree_render_end',
+          'rich_text_selection_change',
+          'transforming-dom-to-images',
+          'generalization_node_contextmenu',
+          'painter_start',
+          'painter_end',
+          'scrollbar_change',
+          'scale',
+          'translate',
+          'node_attachmentClick',
+          'node_attachmentContextmenu'
+        ].forEach(event => {
+          this.mindMap.on(event, (...args) => {
+            this.$bus.$emit(event, ...args)
+          })
         })
-      })
       this.bindSaveEvent()
       this.testDynamicCreateNodes()
       // 如果应用被接管，那么抛出事件传递思维导图实例

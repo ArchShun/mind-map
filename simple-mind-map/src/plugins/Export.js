@@ -48,8 +48,14 @@ class Export {
 
   //  获取svg数据
   async getSvgData() {
-    let { exportPaddingX, exportPaddingY, errorHandler, resetCss, addContentToHeader, addContentToFooter } =
-      this.mindMap.opt
+    let {
+      exportPaddingX,
+      exportPaddingY,
+      errorHandler,
+      resetCss,
+      addContentToHeader,
+      addContentToFooter
+    } = this.mindMap.opt
     let { svg, svgHTML } = this.mindMap.getSvgData({
       paddingX: exportPaddingX,
       paddingY: exportPaddingY,
