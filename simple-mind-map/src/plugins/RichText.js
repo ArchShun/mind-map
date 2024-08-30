@@ -306,7 +306,9 @@ class RichText {
       }
     }
     // 节点文本内容
-    const nodeText = node.getData('text')
+    let nodeText = node.getData('text')
+    // 将公式节点转换为 latex 格式，方便修改
+    nodeText = this.latexRichToText(nodeText)
     // 是否是空文本
     const isEmptyText = isUndef(nodeText)
     // 是否是非空的非富文本
@@ -337,6 +339,83 @@ class RichText {
       this.setTextStyleIfNotRichText(node)
     }
     this.cacheEditingText = ''
+  }
+
+  // 隐藏公式自动补全控件
+  hideLatexAutoPanel() {
+    this.latexAuto.index = -1
+    let div = document.querySelector('.latex-auto-panel')
+    if (div !== null) div.style.display = 'none'
+  }
+
+  // 渲染公式自动补全面板
+  renderLatexAutoPanel() {
+    let liStr = this.latexAuto.list
+      .map(
+        (x, i) => `<li class="${i === this.latexAuto.index ? 'active' : ''}">
+        <span>\\${x.tag}</span>
+        <span>${x.icon}</span>
+      </li>`
+      )
+      .reduce((acc, cur) => acc + cur, '')
+    let div = document.querySelector('.latex-auto-panel')
+    if (div === null) div = this.addLatexAutoPanel()
+    div.querySelector('ul').innerHTML = liStr
+    document.querySelector('.latex-auto-panel').style.display = ''
+    // 激活项保持在可视范围内
+    const element = div.querySelector('.latex-auto-panel li.active')
+    if (element && element.scrollIntoViewIfNeeded)
+      element.scrollIntoViewIfNeeded()
+    else if (element && element.scrollIntoView) element.scrollIntoView()
+  }
+
+  // 查询latex公式自动补全
+  setLatexAutoPanelContent() {
+    if (this.latexAuto.word.length < 1) return this.hideLatexAutoPanel()
+    const k = this.latexAuto.word.substring(1)
+    const tmp = latexList.reduce(
+      (res, x) => {
+        if (x.tag.startsWith(k)) res[0].push(x)
+        else if (x.tag.indexOf(k) > -1) res[1].push(x)
+        return res
+      },
+      [[], []]
+    )
+    this.latexAuto.list = tmp[0]
+      .sort((a, b) => b.sort - a.sort)
+      .concat(tmp[1].sort((a, b) => b.sort - a.sort))
+    if (this.latexAuto.list.length == 0) return this.hideLatexAutoPanel()
+    this.latexAuto.index = 0
+    this.renderLatexAutoPanel()
+  }
+
+  // 添加公式自动补全面板
+  addLatexAutoPanel() {
+    let div = document.createElement('div')
+    let innerHTML = `
+        <div class="latex-auto-panel" style="display:none;">
+          <ul></ul>
+        </div>`
+    div.innerHTML = innerHTML
+    document.querySelector('.ql-editor').parentNode.appendChild(div)
+    return div
+  }
+
+  latexRichToText(nodeText) {
+    if (nodeText.indexOf('class="ql-formula"') !== -1) {
+      var parser = new DOMParser()
+      var doc = parser.parseFromString(nodeText, 'text/html')
+      var els = doc.getElementsByClassName('ql-formula')
+      for (const el of els)
+        nodeText = nodeText.replace(
+          el.outerHTML,
+          `$${el
+            .getAttribute('data-value')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')}$`
+        )
+    }
+    return nodeText
   }
 
   // 获取编辑区域的背景填充
@@ -424,6 +503,7 @@ class RichText {
     if (!this.showTextEdit) {
       return
     }
+    this.formatLatex()
     let html = this.getEditText()
     let list =
       nodes && nodes.length > 0 ? nodes : this.mindMap.renderer.activeNodeList
@@ -777,7 +857,7 @@ class RichText {
     if (!this.node) return
     if (clear) {
       // 清除文本样式
-      ;[
+      [
         'fontFamily',
         'fontSize',
         'fontWeight',

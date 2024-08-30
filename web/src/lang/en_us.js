@@ -291,7 +291,7 @@ export default {
     defaultFileName: 'Mind map',
     creatingTip: 'Creating file',
     directory: 'Directory',
-    autoSaveLocalFileMessage: 'Local file [{name}] saved automatically',,
+    autoSaveLocalFileMessage: 'Local file [{name}] saved automatically',
     newFileTip:
       'Please export the currently edited file before creating a new one, Beware of content loss',
     openFileTip:
