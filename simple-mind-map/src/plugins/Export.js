@@ -86,7 +86,15 @@ class Export {
     if (this.mindMap.richText) {
       const foreignObjectList = svg.find('foreignObject')
       if (foreignObjectList.length > 0) {
-        foreignObjectList[0].add(SVG(`<style>${resetCss}</style>`))
+        foreignObjectList[0].add(
+          SVG(`<style>${resetCss}</style>`),
+          SVG(
+            '<style>.katex-html[aria-hidden=true]{display:none !important;}</style>'
+          )
+        )
+        for (const v of document.getElementsByTagName('style')) {
+          foreignObjectList[0].add(SVG(v.outerHTML))
+        }
         isAddResetCss = true
       }
     }
