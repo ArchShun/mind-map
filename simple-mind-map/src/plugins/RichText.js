@@ -8,10 +8,14 @@ import {
   getVisibleColorFromTheme,
   isUndef,
   checkSmmFormatData,
-  removeHtmlNodeByClass
+  removeHtmlNodeByClass,
+  formatGetNodeGeneralization,
+  nodeRichTextToTextWithWrap
 } from '../utils'
 import { CONSTANTS } from '../constants/constant'
 import { latexList } from '../constants/latexList'
+import MindMapNode from '../core/render/node/MindMapNode'
+import { Scope } from 'parchment'
 
 let extended = false
 
@@ -54,7 +58,6 @@ class RichText {
     this.cacheEditingText = ''
     this.lostStyle = false
     this.isCompositing = false
-    this.latexAuto = { word: '', index: -1, list: [] }
     this.initOpt()
     this.extendQuill()
     this.appendCss()
@@ -69,14 +72,17 @@ class RichText {
   // 绑定事件
   bindEvent() {
     this.onCompositionStart = this.onCompositionStart.bind(this)
+    this.onCompositionUpdate = this.onCompositionUpdate.bind(this)
     this.onCompositionEnd = this.onCompositionEnd.bind(this)
     window.addEventListener('compositionstart', this.onCompositionStart)
+    window.addEventListener('compositionupdate', this.onCompositionUpdate)
     window.addEventListener('compositionend', this.onCompositionEnd)
   }
 
   // 解绑事件
   unbindEvent() {
     window.removeEventListener('compositionstart', this.onCompositionStart)
+    window.removeEventListener('compositionupdate', this.onCompositionUpdate)
     window.removeEventListener('compositionend', this.onCompositionEnd)
   }
 
@@ -193,14 +199,7 @@ class RichText {
     }
     extended = true
 
-    // 扩展quill的字体列表
-    const FontAttributor = Quill.import('attributors/class/font')
-    FontAttributor.whitelist = fontFamilyList
-    Quill.register(FontAttributor, true)
-
-    const FontStyle = Quill.import('attributors/style/font')
-    FontStyle.whitelist = fontFamilyList
-    Quill.register(FontStyle, true)
+    this.extendFont([])
 
     // 扩展quill的字号列表
     const SizeAttributor = Quill.import('attributors/class/size')
@@ -210,6 +209,20 @@ class RichText {
     const SizeStyle = Quill.import('attributors/style/size')
     SizeStyle.whitelist = fontSizeList
     Quill.register(SizeStyle, true)
+  }
+
+  // 扩展字体列表
+  extendFont(list = [], cover = false) {
+    fontFamilyList = cover ? [...list] : [...fontFamilyList, ...list]
+
+    // 扩展quill的字体列表
+    const FontAttributor = Quill.import('attributors/class/font')
+    FontAttributor.whitelist = fontFamilyList
+    Quill.register(FontAttributor, true)
+
+    const FontStyle = Quill.import('attributors/style/font')
+    FontStyle.whitelist = fontFamilyList
+    Quill.register(FontStyle, true)
   }
 
   // 显示文本编辑控件
@@ -222,7 +235,8 @@ class RichText {
       customInnerElsAppendTo,
       nodeTextEditZIndex,
       textAutoWrapWidth,
-      selectTextOnEnterEditText
+      selectTextOnEnterEditText,
+      transformRichTextOnEnterEdit
     } = this.mindMap.opt
     this.node = node
     this.isInserting = isInserting
@@ -239,8 +253,8 @@ class RichText {
     let scaleX = rect.width / originWidth
     let scaleY = rect.height / originHeight
     // 内边距
-    let paddingX = 6
-    let paddingY = 4
+    let paddingX = this.textNodePaddingX
+    let paddingY = this.textNodePaddingY
     if (richTextEditFakeInPlace) {
       let paddingValue = node.getPaddingVale()
       paddingX = paddingValue.paddingX
@@ -292,9 +306,7 @@ class RichText {
       }
     }
     // 节点文本内容
-    let nodeText = node.getData('text')
-    // 将公式节点转换为 latex 格式，方便修改
-    nodeText = this.latexRichToText(nodeText)
+    const nodeText = node.getData('text')
     // 是否是空文本
     const isEmptyText = isUndef(nodeText)
     // 是否是非空的非富文本
@@ -325,83 +337,6 @@ class RichText {
       this.setTextStyleIfNotRichText(node)
     }
     this.cacheEditingText = ''
-  }
-
-  // 隐藏公式自动补全控件
-  hideLatexAutoPanel() {
-    this.latexAuto.index = -1
-    let div = document.querySelector('.latex-auto-panel')
-    if (div !== null) div.style.display = 'none'
-  }
-
-  // 渲染公式自动补全面板
-  renderLatexAutoPanel() {
-    let liStr = this.latexAuto.list
-      .map(
-        (x, i) => `<li class="${i === this.latexAuto.index ? 'active' : ''}">
-        <span>\\${x.tag}</span>
-        <span>${x.icon}</span>
-      </li>`
-      )
-      .reduce((acc, cur) => acc + cur, '')
-    let div = document.querySelector('.latex-auto-panel')
-    if (div === null) div = this.addLatexAutoPanel()
-    div.querySelector('ul').innerHTML = liStr
-    document.querySelector('.latex-auto-panel').style.display = ''
-    // 激活项保持在可视范围内
-    const element = div.querySelector('.latex-auto-panel li.active')
-    if (element && element.scrollIntoViewIfNeeded)
-      element.scrollIntoViewIfNeeded()
-    else if (element && element.scrollIntoView) element.scrollIntoView()
-  }
-
-  // 查询latex公式自动补全
-  setLatexAutoPanelContent() {
-    if (this.latexAuto.word.length < 1) return this.hideLatexAutoPanel()
-    const k = this.latexAuto.word.substring(1)
-    const tmp = latexList.reduce(
-      (res, x) => {
-        if (x.tag.startsWith(k)) res[0].push(x)
-        else if (x.tag.indexOf(k) > -1) res[1].push(x)
-        return res
-      },
-      [[], []]
-    )
-    this.latexAuto.list = tmp[0]
-      .sort((a, b) => b.sort - a.sort)
-      .concat(tmp[1].sort((a, b) => b.sort - a.sort))
-    if (this.latexAuto.list.length == 0) return this.hideLatexAutoPanel()
-    this.latexAuto.index = 0
-    this.renderLatexAutoPanel()
-  }
-
-  // 添加公式自动补全面板
-  addLatexAutoPanel() {
-    let div = document.createElement('div')
-    let innerHTML = `
-        <div class="latex-auto-panel" style="display:none;">
-          <ul></ul>
-        </div>`
-    div.innerHTML = innerHTML
-    document.querySelector('.ql-editor').parentNode.appendChild(div)
-    return div
-  }
-
-  latexRichToText(nodeText) {
-    if (nodeText.indexOf('class="ql-formula"') !== -1) {
-      var parser = new DOMParser()
-      var doc = parser.parseFromString(nodeText, 'text/html')
-      var els = doc.getElementsByClassName('ql-formula')
-      for (const el of els)
-        nodeText = nodeText.replace(
-          el.outerHTML,
-          `$${el
-            .getAttribute('data-value')
-            .replaceAll('<', '&lt;')
-            .replaceAll('>', '&gt;')}$`
-        )
-    }
-    return nodeText
   }
 
   // 获取编辑区域的背景填充
@@ -443,7 +378,9 @@ class RichText {
   getEditText() {
     let html = this.quill.container.firstChild.innerHTML
     // 去除ql-cursor节点
-    html = removeHtmlNodeByClass(html, '.ql-cursor')
+    // https://github.com/wanglin2/mind-map/commit/138cc4b3e824671143f0bf70e5c46796f48520d0
+    // https://github.com/wanglin2/mind-map/commit/0760500cebe8ec4e8ad84ab63f877b8b2a193aa1
+    // html = removeHtmlNodeByClass(html, '.ql-cursor')
     // 去除最后的空行
     return html.replace(/<p><br><\/p>$/, '')
   }
@@ -487,7 +424,6 @@ class RichText {
     if (!this.showTextEdit) {
       return
     }
-    this.formatLatex()
     let html = this.getEditText()
     let list =
       nodes && nodes.length > 0 ? nodes : this.mindMap.renderer.activeNodeList
@@ -499,12 +435,13 @@ class RichText {
       // }
       this.mindMap.render()
     })
-    this.mindMap.emit('hide_text_edit', this.textEditNode, list)
+    const node = this.node
     this.textEditNode.style.display = 'none'
     this.showTextEdit = false
     this.mindMap.emit('rich_text_selection_change', false)
     this.node = null
     this.isInserting = false
+    this.mindMap.emit('hide_text_edit', this.textEditNode, list, node)
   }
 
   // 初始化Quill富文本编辑器
@@ -560,9 +497,45 @@ class RichText {
               }
             },
             enter: {
-              key: 13,
+              key: 'Enter',
               handler: function () {
-                // 覆盖默认的回车键换行
+                // 覆盖默认的回车键，禁止换行
+              }
+            },
+            shiftEnter: {
+              key: 'Enter',
+              shiftKey: true,
+              handler: function (range, context) {
+                // 覆盖默认的换行，默认情况下新行的样式会丢失
+                const lineFormats = Object.keys(context.format).reduce(
+                  (formats, format) => {
+                    if (
+                      this.quill.scroll.query(format, Scope.BLOCK) &&
+                      !Array.isArray(context.format[format])
+                    ) {
+                      formats[format] = context.format[format]
+                    }
+                    return formats
+                  },
+                  {}
+                )
+                const delta = new Delta()
+                  .retain(range.index)
+                  .delete(range.length)
+                  .insert('\n', lineFormats)
+                this.quill.updateContents(delta, Quill.sources.USER)
+                this.quill.setSelection(range.index + 1, Quill.sources.SILENT)
+                this.quill.focus()
+                Object.keys(context.format).forEach(name => {
+                  if (lineFormats[name] != null) return
+                  if (Array.isArray(context.format[name])) return
+                  if (name === 'code' || name === 'link') return
+                  this.quill.format(
+                    name,
+                    context.format[name],
+                    Quill.sources.USER
+                  )
+                })
               }
             },
             tab: {
@@ -575,6 +548,21 @@ class RichText {
         }
       },
       theme: 'snow'
+    })
+    // 拦截复制事件，即Ctrl + c，去除多余的空行
+    this.quill.root.addEventListener('copy', event => {
+      event.preventDefault()
+      const sel = window.getSelection()
+      const originStr = sel.toString()
+      try {
+        const range = sel.getRangeAt(0)
+        const div = document.createElement('div')
+        div.appendChild(range.cloneContents())
+        const text = nodeRichTextToTextWithWrap(div.innerHTML)
+        event.clipboardData.setData('text/plain', text)
+      } catch (e) {
+        event.clipboardData.setData('text/plain', originStr)
+      }
     })
     this.quill.on('selection-change', range => {
       // 刚创建的节点全选不需要显示操作条
@@ -638,18 +626,23 @@ class RichText {
         this.setTextStyleIfNotRichText(this.node)
         this.lostStyle = false
       }
+      this.mindMap.emit('node_text_edit_change', {
+        node: this.node,
+        text: this.getEditText(),
+        richText: true
+      })
     })
     // 拦截粘贴，只允许粘贴纯文本
-    this.quill.clipboard.addMatcher(Node.TEXT_NODE, node => {
-      let style = this.getPasteTextStyle()
-      return new Delta().insert(this.formatPasteText(node.data), style)
-    })
+    // this.quill.clipboard.addMatcher(Node.TEXT_NODE, node => {
+    //   let style = this.getPasteTextStyle()
+    //   return new Delta().insert(this.formatPasteText(node.data), style)
+    // })
     this.quill.clipboard.addMatcher(Node.ELEMENT_NODE, (node, delta) => {
       let ops = []
       let style = this.getPasteTextStyle()
       delta.ops.forEach(op => {
         // 过滤出文本内容，过滤掉换行
-        if (op.insert && typeof op.insert === 'string' && op.insert !== '\n') {
+        if (op.insert && typeof op.insert === 'string') {
           ops.push({
             attributes: { ...style },
             insert: this.formatPasteText(op.insert)
@@ -690,6 +683,16 @@ class RichText {
       return
     }
     this.isCompositing = true
+  }
+
+  // 中文输入中
+  onCompositionUpdate() {
+    if (!this.showTextEdit || !this.node) return
+    this.mindMap.emit('node_text_edit_change', {
+      node: this.node,
+      text: this.getEditText(),
+      richText: true
+    })
   }
 
   // 中文输入结束
@@ -866,6 +869,25 @@ class RichText {
     }
   }
 
+  // 检查指定节点是否存在自定义的富文本样式
+  checkNodeHasCustomRichTextStyle(node) {
+    const list = [
+      'fontFamily',
+      'fontSize',
+      'fontWeight',
+      'fontStyle',
+      'textDecoration',
+      'color'
+    ]
+    const nodeData = node instanceof MindMapNode ? node.getData() : node
+    for (let i = 0; i < list.length; i++) {
+      if (nodeData[list[i]] !== undefined) {
+        return true
+      }
+    }
+    return false
+  }
+
   // 将所有节点转换成非富文本节点
   transformAllNodesToNormalNode() {
     if (!this.mindMap.renderer.renderTree) return
@@ -876,7 +898,14 @@ class RichText {
         if (node.data.richText) {
           node.data.richText = false
           node.data.text = getTextFromHtml(node.data.text)
-          // delete node.data.uid
+        }
+        // 概要
+        if (node.data) {
+          const generalizationList = formatGetNodeGeneralization(node.data)
+          generalizationList.forEach(item => {
+            item.richText = false
+            item.text = getTextFromHtml(item.text)
+          })
         }
       },
       null,
@@ -896,6 +925,14 @@ class RichText {
       if (root.data && !root.data.richText) {
         root.data.richText = true
         root.data.resetRichText = true
+      }
+      // 概要
+      if (root.data) {
+        const generalizationList = formatGetNodeGeneralization(root.data)
+        generalizationList.forEach(item => {
+          item.richText = true
+          item.resetRichText = true
+        })
       }
       if (root.children && root.children.length > 0) {
         Array.from(root.children).forEach(item => {

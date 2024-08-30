@@ -1,4 +1,4 @@
-import Node from './Node'
+import MindMapNode from './MindMapNode'
 import { createUid } from '../../../utils/index'
 
 // 获取节点概要数据
@@ -49,8 +49,9 @@ function createGeneralizationNode() {
       cur.generalizationLine = this.lineDraw.path()
     }
     if (!cur.generalizationNode) {
-      cur.generalizationNode = new Node({
+      cur.generalizationNode = new MindMapNode({
         data: {
+          inserting: item.inserting,
           data: item
         },
         uid: createUid(),
@@ -59,6 +60,7 @@ function createGeneralizationNode() {
         isGeneralization: true
       })
     }
+    delete item.inserting
     // 关联所属节点
     cur.generalizationNode.generalizationBelongNode = this
     // 大小
@@ -83,7 +85,7 @@ function updateGeneralization() {
 }
 
 //  渲染概要节点
-function renderGeneralization() {
+function renderGeneralization(forceRender) {
   if (this.isGeneralization) return
   this.updateGeneralizationData()
   const list = this.formatGetGeneralization()
@@ -98,7 +100,7 @@ function renderGeneralization() {
   this.renderer.layout.renderGeneralization(this._generalizationList)
   this._generalizationList.forEach(item => {
     this.style.generalizationLine(item.generalizationLine)
-    item.generalizationNode.render()
+    item.generalizationNode.render(() => {}, forceRender)
   })
 }
 

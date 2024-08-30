@@ -23,6 +23,18 @@ class Command {
       this.mindMap.opt.addHistoryTime,
       this
     )
+    // 是否暂停收集历史数据
+    this.isPause = false
+  }
+
+  // 暂停收集历史数据
+  pause() {
+    this.isPause = true
+  }
+
+  // 恢复收集历史数据
+  recovery() {
+    this.isPause = false
   }
 
   //  清空历史数据
@@ -88,11 +100,11 @@ class Command {
 
   //  添加回退数据
   addHistory() {
-    if (this.mindMap.opt.readonly) {
+    if (this.mindMap.opt.readonly || this.isPause) {
       return
     }
     const lastData =
-      this.history.length > 0 ? this.history[this.history.length - 1] : null
+      this.history.length > 0 ? this.history[this.activeHistoryIndex] : null
     const data = this.getCopyData()
     // 此次数据和上次一样则不重复添加
     if (lastData === data) return
@@ -131,7 +143,6 @@ class Command {
       )
       const data = simpleDeepClone(this.history[this.activeHistoryIndex])
       this.emitDataUpdatesEvent(lastData, data)
-      this.mindMap.emit('data_change', data)
       return data
     }
   }
@@ -152,7 +163,6 @@ class Command {
       )
       const data = simpleDeepClone(this.history[this.activeHistoryIndex])
       this.emitDataUpdatesEvent(lastData, data)
-      this.mindMap.emit('data_change', data)
       return data
     }
   }

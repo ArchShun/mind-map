@@ -1,4 +1,5 @@
 import { bfsWalk, throttle, checkTwoRectIsOverlap } from '../utils'
+import AutoMove from '../utils/AutoMove'
 
 // 节点选择插件
 class Select {
@@ -13,6 +14,7 @@ class Select {
     this.mouseMoveY = 0
     this.isSelecting = false
     this.cacheActiveList = []
+    this.autoMove = new AutoMove(mindMap)
     this.bindEvent()
   }
 
@@ -44,7 +46,7 @@ class Select {
     }
     let { useLeftKeySelectionRightKeyDrag } = this.mindMap.opt
     if (
-      !e.ctrlKey &&
+      !(e.ctrlKey || e.metaKey) &&
       (useLeftKeySelectionRightKeyDrag ? e.which !== 1 : e.which !== 3)
     ) {
       return
@@ -75,19 +77,21 @@ class Select {
     ) {
       return
     }
-    this.clearAutoMoveTimer()
-    this.onMove(
+    this.autoMove.clearAutoMoveTimer()
+    this.autoMove.onMove(
       e.clientX,
       e.clientY,
       () => {
         this.isSelecting = true
         // 绘制矩形
-        this.rect.plot([
-          [this.mouseDownX, this.mouseDownY],
-          [this.mouseMoveX, this.mouseDownY],
-          [this.mouseMoveX, this.mouseMoveY],
-          [this.mouseDownX, this.mouseMoveY]
-        ])
+        if (this.rect) {
+          this.rect.plot([
+            [this.mouseDownX, this.mouseDownY],
+            [this.mouseMoveX, this.mouseDownY],
+            [this.mouseMoveX, this.mouseMoveY],
+            [this.mouseDownX, this.mouseMoveY]
+          ])
+        }
         this.checkInNodes()
       },
       (dir, step) => {
@@ -120,7 +124,7 @@ class Select {
       return
     }
     this.checkTriggerNodeActiveEvent()
-    clearTimeout(this.autoMoveTimer)
+    this.autoMove.clearAutoMoveTimer()
     this.isMousedown = false
     this.cacheActiveList = []
     if (this.rect) this.rect.remove()
@@ -154,54 +158,6 @@ class Select {
     }
   }
 
-  //  鼠标移动事件
-  onMove(x, y, callback = () => {}, handle = () => {}) {
-    callback()
-    // 检测边缘移动
-    let step = this.mindMap.opt.selectTranslateStep
-    let limit = this.mindMap.opt.selectTranslateLimit
-    let count = 0
-    // 左边缘
-    if (x <= this.mindMap.elRect.left + limit) {
-      handle('left', step)
-      this.mindMap.view.translateX(step)
-      count++
-    }
-    // 右边缘
-    if (x >= this.mindMap.elRect.right - limit) {
-      handle('right', step)
-      this.mindMap.view.translateX(-step)
-      count++
-    }
-    // 上边缘
-    if (y <= this.mindMap.elRect.top + limit) {
-      handle('top', step)
-      this.mindMap.view.translateY(step)
-      count++
-    }
-    // 下边缘
-    if (y >= this.mindMap.elRect.bottom - limit) {
-      handle('bottom', step)
-      this.mindMap.view.translateY(-step)
-      count++
-    }
-    if (count > 0) {
-      this.startAutoMove(x, y, callback, handle)
-    }
-  }
-
-  //  开启自动移动
-  startAutoMove(x, y, callback, handle) {
-    this.autoMoveTimer = setTimeout(() => {
-      this.onMove(x, y, callback, handle)
-    }, 20)
-  }
-
-  // 清除自动移动定时器
-  clearAutoMoveTimer() {
-    clearTimeout(this.autoMoveTimer)
-  }
-
   //  创建矩形
   createRect(x, y) {
     if (this.rect) this.rect.remove()
@@ -224,7 +180,8 @@ class Select {
     let miny = Math.min(this.mouseDownY, this.mouseMoveY)
     let maxx = Math.max(this.mouseDownX, this.mouseMoveX)
     let maxy = Math.max(this.mouseDownY, this.mouseMoveY)
-    bfsWalk(this.mindMap.renderer.root, node => {
+
+    const check = node => {
       let { left, top, width, height } = node
       let right = (left + width) * scaleX + translateX
       let bottom = (top + height) * scaleY + translateY
@@ -237,11 +194,23 @@ class Select {
           return
         }
         this.mindMap.renderer.addNodeToActiveList(node)
+        this.mindMap.renderer.emitNodeActiveEvent()
       } else if (node.getData('isActive')) {
         if (!node.getData('isActive')) {
           return
         }
         this.mindMap.renderer.removeNodeFromActiveList(node)
+        this.mindMap.renderer.emitNodeActiveEvent()
+      }
+    }
+
+    bfsWalk(this.mindMap.renderer.root, node => {
+      check(node)
+      // 概要节点
+      if (node._generalizationList && node._generalizationList.length > 0) {
+        node._generalizationList.forEach(item => {
+          check(item.generalizationNode)
+        })
       }
     })
   }

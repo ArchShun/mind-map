@@ -5,19 +5,8 @@
       <div class="toolbarBlock">
         <ToolbarNodeBtnList :list="horizontalList"></ToolbarNodeBtnList>
         <!-- 更多 -->
-        <el-popover
-          v-model="popoverShow"
-          placement="bottom-end"
-          width="120"
-          trigger="hover"
-          v-if="showMoreBtn"
-          :style="{ marginLeft: horizontalList.length > 0 ? '20px' : 0 }"
-        >
-          <ToolbarNodeBtnList
-            dir="v"
-            :list="verticalList"
-            @click.native="popoverShow = false"
-          ></ToolbarNodeBtnList>
+        <el-popover v-model="popoverShow" placement="bottom-end" width="120" trigger="hover" v-if="showMoreBtn" :style="{ marginLeft: horizontalList.length > 0 ? '20px' : 0 }">
+          <ToolbarNodeBtnList dir="v" :list="verticalList" @click.native="popoverShow = false"></ToolbarNodeBtnList>
           <div slot="reference" class="toolbarBtn">
             <span class="icon iconfont icongongshi"></span>
             <span class="text">{{ $t('toolbar.more') }}</span>
@@ -26,19 +15,23 @@
       </div>
       <!-- 导出 -->
       <div class="toolbarBlock">
-        <div class="toolbarBtn" @click="openDirectory">
+        <div class="toolbarBtn" @click="openDirectory" v-if="!isMobile">
           <span class="icon iconfont icondakai"></span>
           <span class="text">{{ $t('toolbar.directory') }}</span>
         </div>
-        <div class="toolbarBtn" @click="createNewLocalFile">
-          <span class="icon iconfont iconxinjian"></span>
-          <span class="text">{{ $t('toolbar.newFile') }}</span>
-        </div>
-        <div class="toolbarBtn" @click="openLocalFile">
-          <span class="icon iconfont iconwenjian1"></span>
-          <span class="text">{{ $t('toolbar.openFile') }}</span>
-        </div>
-        <div class="toolbarBtn" @click="saveLocalFile">
+        <el-tooltip effect="dark" :content="$t('toolbar.newFileTip')" placement="bottom" v-if="!isMobile">
+          <div class="toolbarBtn" @click="createNewLocalFile">
+            <span class="icon iconfont iconxinjian"></span>
+            <span class="text">{{ $t('toolbar.newFile') }}</span>
+          </div>
+        </el-tooltip>
+        <el-tooltip effect="dark" :content="$t('toolbar.openFileTip')" placement="bottom" v-if="!isMobile">
+          <div class="toolbarBtn" @click="openLocalFile">
+            <span class="icon iconfont iconwenjian1"></span>
+            <span class="text">{{ $t('toolbar.openFile') }}</span>
+          </div>
+        </el-tooltip>
+        <div class="toolbarBtn" @click="saveLocalFile" v-if="!isMobile">
           <span class="icon iconfont iconlingcunwei"></span>
           <span class="text">{{ $t('toolbar.saveAs') }}</span>
         </div>
@@ -51,11 +44,7 @@
           <span class="text">{{ $t('toolbar.export') }}</span>
         </div>
 
-        <div
-          class="toolbarBtn"
-          @click="() => (loginVisible = !loginVisible)"
-          style="margin-right: 0;"
-        >
+        <div class="toolbarBtn" @click="() => (loginVisible = !loginVisible)" style="margin-right: 0;">
           <span class="icon iconfont iconexport"></span>
           <span class="text">登录</span>
         </div>
@@ -69,73 +58,37 @@
               <el-input v-model="loginForm.password" show-password />
             </el-form-item>
             <el-form-item style="text-align: right;margin-bottom: 0;">
-              <el-button type="primary" @click="submit" size="mini"
-                >登录</el-button
-              >
-              <el-button @click="loginVisible = false" size="mini"
-                >取消</el-button
-              >
+              <el-button type="primary" @click="submit" size="mini">登录</el-button>
+              <el-button @click="loginVisible = false" size="mini">取消</el-button>
             </el-form-item>
           </el-form>
         </div>
 
         <!-- 本地文件树 -->
-        <div
-          class="fileTreeBox"
-          v-if="fileTreeVisible"
-          :class="{ expand: fileTreeExpand }"
-        >
+        <div class="fileTreeBox" v-if="fileTreeVisible" :class="{ expand: fileTreeExpand }">
           <div class="fileTreeToolbar">
             <div class="fileTreeName">
               {{ rootDirName ? '/' + rootDirName : '' }}
             </div>
             <div class="fileTreeActionList">
-              <div
-                class="btn"
-                :class="[
-                  fileTreeExpand ? 'el-icon-arrow-up' : 'el-icon-arrow-down'
-                ]"
-                @click="fileTreeExpand = !fileTreeExpand"
-              ></div>
-              <div
-                class="btn el-icon-close"
-                @click="fileTreeVisible = false"
-              ></div>
+              <div class="btn" :class="[
+                fileTreeExpand ? 'el-icon-arrow-up' : 'el-icon-arrow-down'
+              ]" @click="fileTreeExpand = !fileTreeExpand"></div>
+              <div class="btn el-icon-close" @click="fileTreeVisible = false"></div>
             </div>
           </div>
           <div class="fileTreeWrap">
-            <el-tree
-              :props="fileTreeProps"
-              :load="loadFileTreeNode"
-              :expand-on-click-node="false"
-              node-key="id"
-              lazy
-            >
+            <el-tree :props="fileTreeProps" :load="loadFileTreeNode" :expand-on-click-node="false" node-key="id" lazy>
               <span class="customTreeNode" slot-scope="{ node, data }">
                 <div class="treeNodeInfo">
-                  <span
-                    class="treeNodeIcon iconfont"
-                    :class="[
-                      data.type === 'file' ? 'iconwenjian' : 'icondakai'
-                    ]"
-                  ></span>
+                  <span class="treeNodeIcon iconfont" :class="[
+                    data.type === 'file' ? 'iconwenjian' : 'icondakai'
+                  ]"></span>
                   <span class="treeNodeName">{{ node.label }}</span>
                 </div>
                 <div class="treeNodeBtnList" v-if="data.type === 'file'">
-                  <el-button
-                    type="text"
-                    size="mini"
-                    v-if="data.enableEdit"
-                    @click="editLocalFile(data)"
-                    >编辑</el-button
-                  >
-                  <el-button
-                    type="text"
-                    size="mini"
-                    v-else
-                    @click="importLocalFile(data)"
-                    >导入</el-button
-                  >
+                  <el-button type="text" size="mini" v-if="data.enableEdit" @click="editLocalFile(data)">编辑</el-button>
+                  <el-button type="text" size="mini" v-else @click="importLocalFile(data)">导入</el-button>
                 </div>
               </span>
             </el-tree>
@@ -166,7 +119,7 @@ import { Notification } from 'element-ui'
 import exampleData from 'simple-mind-map/example/exampleData'
 import { getData, login } from '../../../api'
 import ToolbarNodeBtnList from './ToolbarNodeBtnList.vue'
-import { throttle } from 'simple-mind-map/src/utils/index'
+import { throttle, isMobile } from 'simple-mind-map/src/utils/index'
 
 /**
  * @Author: 王林
@@ -189,6 +142,7 @@ export default {
   },
   data() {
     return {
+      isMobile: isMobile(),
       list: [
         'back',
         'forward',
@@ -203,8 +157,10 @@ export default {
         'tag',
         'summary',
         'associativeLine',
-        'formula'
-        // 'attachment'
+        'formula',
+        // 'attachment',
+        'outerFrame',
+        'annotation'
       ],
       horizontalList: [],
       verticalList: [],
@@ -222,7 +178,8 @@ export default {
         password: ''
       },
       rootDirName: '',
-      fileTreeExpand: true
+      fileTreeExpand: true,
+      waitingWriteToLocalFile: false
     }
   },
   computed: {
@@ -246,11 +203,13 @@ export default {
     this.computeToolbarShowThrottle = throttle(this.computeToolbarShow, 300)
     window.addEventListener('resize', this.computeToolbarShowThrottle)
     this.$bus.$on('lang_change', this.computeToolbarShowThrottle)
+    window.addEventListener('beforeunload', this.onUnload)
   },
   beforeDestroy() {
     this.$bus.$off('write_local_file', this.onWriteLocalFile)
     window.removeEventListener('resize', this.computeToolbarShowThrottle)
     this.$bus.$off('lang_change', this.computeToolbarShowThrottle)
+    window.removeEventListener('beforeunload', this.onUnload)
   },
   methods: {
     // 计算工具按钮如何显示
@@ -283,9 +242,20 @@ export default {
     // 监听本地文件读写
     onWriteLocalFile(content) {
       clearTimeout(this.timer)
+      if (fileHandle && this.isHandleLocalFile) {
+        this.waitingWriteToLocalFile = true
+      }
       this.timer = setTimeout(() => {
         this.writeLocalFile(content)
       }, 1000)
+    },
+
+    onUnload(e) {
+      if (this.waitingWriteToLocalFile) {
+        const msg = '存在未保存的数据'
+        e.returnValue = msg
+        return msg
+      }
     },
 
     // 加载本地文件树
@@ -407,9 +377,8 @@ export default {
         Notification.closeAll()
         Notification({
           title: this.$t('toolbar.tip'),
-          message: `${this.$t('toolbar.editingLocalFileTipFront')}${
-            file.name
-          }${this.$t('toolbar.editingLocalFileTipEnd')}`,
+          message: `${this.$t('toolbar.editingLocalFileTipFront')}${file.name
+            }${this.$t('toolbar.editingLocalFileTipEnd')}`,
           duration: 0,
           showClose: true
         })
@@ -443,6 +412,7 @@ export default {
     // 写入本地文件
     async writeLocalFile(content) {
       if (!fileHandle || !this.isHandleLocalFile) {
+        this.waitingWriteToLocalFile = false
         return
       }
       if (!this.isFullDataFile) {
@@ -465,6 +435,7 @@ export default {
         })
         lastAutoSaveString = _root
       }
+      this.waitingWriteToLocalFile = false
     },
 
     // 创建本地文件
@@ -535,6 +506,7 @@ export default {
   &.isDark {
     .toolbar {
       color: hsla(0, 0%, 100%, 0.9);
+
       .toolbarBlock {
         background-color: #262a2e;
 
@@ -545,12 +517,12 @@ export default {
             background-color: #262a2e;
 
             &.el-tree--highlight-current {
-              .el-tree-node.is-current > .el-tree-node__content {
+              .el-tree-node.is-current>.el-tree-node__content {
                 background-color: hsla(0, 0%, 100%, 0.05) !important;
               }
             }
 
-            .el-tree-node:focus > .el-tree-node__content {
+            .el-tree-node:focus>.el-tree-node__content {
               background-color: hsla(0, 0%, 100%, 0.05) !important;
             }
 
@@ -596,6 +568,7 @@ export default {
       }
     }
   }
+
   .toolbar {
     position: fixed;
     left: 50%;
@@ -643,12 +616,15 @@ export default {
         &.login {
           height: auto;
           padding: 1em;
+
           /deep/ .el-form-item {
             display: flex;
             margin-bottom: 1em;
+
             .el-form-item__content {
               flex-grow: 10;
             }
+
             .el-form-item__label {
               width: 100px;
               text-align: start;
@@ -675,8 +651,7 @@ export default {
           margin-bottom: 12px;
           padding-left: 12px;
 
-          .fileTreeName {
-          }
+          .fileTreeName {}
 
           .fileTreeActionList {
             .btn {

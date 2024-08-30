@@ -255,7 +255,7 @@
               :value="false"
             >
             </el-option>
-            <el-option key="right" :label="$t('baseStyle.right')" :value="true">
+            <el-option key="right" :label="$t('baseStyle.edge')" :value="true">
             </el-option>
           </el-select>
         </div>
@@ -465,6 +465,47 @@
                 :class="{ isDark: isDark }"
                 :style="{ height: item + 'px' }"
               ></span>
+            </el-option>
+          </el-select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="rowItem">
+          <span class="name">{{ $t('style.style') }}</span>
+          <el-select
+            size="mini"
+            style="width: 80px"
+            v-model="style.associativeLineDasharray"
+            placeholder=""
+            @change="
+              value => {
+                update('associativeLineDasharray', value)
+              }
+            "
+          >
+            <el-option
+              v-for="item in borderDasharrayList"
+              :key="item.value"
+              :label="item.name"
+              :value="item.value"
+            >
+              <svg width="120" height="34">
+                <line
+                  x1="10"
+                  y1="17"
+                  x2="110"
+                  y2="17"
+                  stroke-width="2"
+                  :stroke="
+                    style.associativeLineDasharray === item.value
+                      ? '#409eff'
+                      : isDark
+                      ? '#fff'
+                      : '#000'
+                  "
+                  :stroke-dasharray="item.value"
+                ></line>
+              </svg>
             </el-option>
           </el-select>
         </div>
@@ -696,6 +737,16 @@
             >
           </div>
         </div>
+        <!-- 是否在节点下方 -->
+        <div class="row">
+          <div class="rowItem">
+            <el-checkbox
+              v-model="watermarkConfig.belowNode"
+              @change="updateWatermarkConfig"
+              >{{ $t('baseStyle.belowNode') }}</el-checkbox
+            >
+          </div>
+        </div>
         <!-- 水印文字 -->
         <div class="row">
           <div class="rowItem">
@@ -803,8 +854,52 @@
           </div>
         </div>
       </template>
+      <!-- 外框内边距 -->
+      <div class="title noTop">{{ $t('baseStyle.outerFramePadding') }}</div>
+      <div class="row">
+        <div class="rowItem">
+          <span class="name">{{ $t('baseStyle.horizontal') }}</span>
+          <el-slider
+            style="width: 200px"
+            v-model="outerFramePadding.outerFramePaddingX"
+            @change="
+              value => {
+                updateOuterFramePadding('outerFramePaddingX', value)
+              }
+            "
+          ></el-slider>
+        </div>
+      </div>
+      <div class="row">
+        <div class="rowItem">
+          <span class="name">{{ $t('baseStyle.vertical') }}</span>
+          <el-slider
+            style="width: 200px"
+            v-model="outerFramePadding.outerFramePaddingY"
+            @change="
+              value => {
+                updateOuterFramePadding('outerFramePaddingY', value)
+              }
+            "
+          ></el-slider>
+        </div>
+      </div>
       <!-- 其他配置 -->
       <div class="title noTop">{{ $t('baseStyle.otherConfig') }}</div>
+      <!-- 配置性能模式 -->
+      <div class="row">
+        <div class="rowItem">
+          <el-checkbox
+            v-model="config.openPerformance"
+            @change="
+              value => {
+                updateOtherConfig('openPerformance', value)
+              }
+            "
+            >{{ $t('baseStyle.openPerformance') }}</el-checkbox
+          >
+        </div>
+      </div>
       <!-- 配置开启自由拖拽 -->
       <div class="row">
         <div class="rowItem">
@@ -924,7 +1019,7 @@
         </div>
       </div>
       <!-- 是否开启手绘风格 -->
-      <!-- <div class="row">
+      <div class="row" v-if="supportHandDrawnLikeStyle">
         <div class="rowItem">
           <el-checkbox
             v-model="localConfigs.isUseHandDrawnLikeStyle"
@@ -932,7 +1027,7 @@
             >{{ $t('baseStyle.isUseHandDrawnLikeStyle') }}</el-checkbox
           >
         </div>
-      </div> -->
+      </div>
     </div>
   </Sidebar>
 </template>
@@ -949,7 +1044,8 @@ import {
   fontFamilyList,
   fontSizeList,
   rootLineKeepSameInCurveList,
-  lineStyleMap
+  lineStyleMap,
+  borderDasharrayList
 } from '@/config'
 import ImgUpload from '@/components/ImgUpload'
 import { storeConfig } from '@/api'
@@ -1004,6 +1100,7 @@ export default {
         associativeLineColor: '',
         associativeLineWidth: 0,
         associativeLineActiveWidth: 0,
+        associativeLineDasharray: '',
         associativeLineActiveColor: '',
         associativeLineTextFontSize: 0,
         associativeLineTextColor: '',
@@ -1022,6 +1119,7 @@ export default {
         nodeUseLineStyle: false
       },
       config: {
+        openPerformance: false,
         enableFreeDrag: false,
         mousewheelAction: 'zoom',
         mousewheelZoomActionReverse: false,
@@ -1048,14 +1146,19 @@ export default {
         isShowScrollbar: false,
         isUseHandDrawnLikeStyle: false
       },
-      currentLayout: '' // 当前结构
+      currentLayout: '', // 当前结构
+      outerFramePadding: {
+        outerFramePaddingX: 0,
+        outerFramePaddingY: 0
+      }
     }
   },
   computed: {
     ...mapState({
       activeSidebar: state => state.activeSidebar,
       localConfig: state => state.localConfig,
-      isDark: state => state.localConfig.isDark
+      isDark: state => state.localConfig.isDark,
+      supportHandDrawnLikeStyle: state => state.supportHandDrawnLikeStyle
     }),
     lineStyleList() {
       return lineStyleList[this.$i18n.locale] || lineStyleList.zh
@@ -1108,6 +1211,9 @@ export default {
     },
     showRootLineKeepSameInCurveLayouts() {
       return supportRootLineKeepSameInCurveLayouts.includes(this.currentLayout)
+    },
+    borderDasharrayList() {
+      return borderDasharrayList[this.$i18n.locale] || borderDasharrayList.zh
     }
   },
   watch: {
@@ -1118,6 +1224,7 @@ export default {
         this.initConfig()
         this.initWatermark()
         this.initRainbowLines()
+        this.initOuterFramePadding()
         this.currentLayout = this.mindMap.getLayout()
       } else {
         this.$refs.sidebar.show = false
@@ -1172,6 +1279,7 @@ export default {
         'associativeLineColor',
         'associativeLineWidth',
         'associativeLineActiveWidth',
+        'associativeLineDasharray',
         'associativeLineActiveColor',
         'associativeLineTextFontSize',
         'associativeLineTextColor',
@@ -1198,6 +1306,7 @@ export default {
     // 初始化其他配置
     initConfig() {
       ;[
+        'openPerformance',
         'enableFreeDrag',
         'mousewheelAction',
         'mousewheelZoomActionReverse',
@@ -1237,6 +1346,16 @@ export default {
           ? this.mindMap.rainbowLines.getColorsList()
           : null
         : null
+    },
+
+    // 外框
+    initOuterFramePadding() {
+      this.outerFramePadding.outerFramePaddingX = this.mindMap.getConfig(
+        'outerFramePaddingX'
+      )
+      this.outerFramePadding.outerFramePaddingY = this.mindMap.getConfig(
+        'outerFramePaddingX'
+      )
     },
 
     /**
@@ -1325,6 +1444,20 @@ export default {
       storeConfig({
         config: this.data.config
       })
+    },
+
+    // 更新外框
+    updateOuterFramePadding(prop, value) {
+      this.outerFramePadding[prop] = value
+      this.data.config = this.data.config || {}
+      this.data.config[prop] = value
+      this.mindMap.updateConfig({
+        [prop]: value
+      })
+      storeConfig({
+        config: this.data.config
+      })
+      this.mindMap.render()
     },
 
     // 设置margin

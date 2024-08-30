@@ -20,7 +20,7 @@ export default {
   lineStyle: 'straight', // 曲线（curve）【仅支持logicalStructure、mindMap、verticalTimeline三种结构】、直线（straight）、直连（direct）【仅支持logicalStructure、mindMap、organizationStructure、verticalTimeline四种结构】
   // 曲线连接时，根节点和其他节点的连接线样式保持统一，默认根节点为 ( 型，其他节点为 { 型，设为true后，都为 { 型。仅支持logicalStructure、mindMap两种结构
   rootLineKeepSameInCurve: true,
-  // 曲线连接时，根节点和其他节点的连线起始位置保持统一，默认根节点的连线起始位置在节点中心，其他节点在节点右侧，如果该配置设为true，那么根节点的连线起始位置也会在节点右侧
+  // 曲线连接时，根节点和其他节点的连线起始位置保持统一，默认根节点的连线起始位置在节点中心，其他节点在节点右侧（或左侧），如果该配置设为true，那么根节点的连线起始位置也会在节点右侧（或左侧）
   rootLineStartPositionKeepSameInCurve: false,
   // 直线连接(straight)时，连线的圆角大小，设置为0代表没有圆角，仅支持logicalStructure、mindMap、verticalTimeline三种结构
   lineRadius: 5,
@@ -42,6 +42,8 @@ export default {
   associativeLineActiveWidth: 8,
   // 关联线激活状态的颜色
   associativeLineActiveColor: 'rgba(2, 167, 240, 1)',
+  // 关联线样式
+  associativeLineDasharray: [6, 4],
   // 关联线文字颜色
   associativeLineTextColor: 'rgb(51, 51, 51)',
   // 关联线文字大小
@@ -80,6 +82,8 @@ export default {
     gradientStyle: false,
     startColor: '#549688',
     endColor: '#fff',
+    startDir: [0, 0],
+    endDir: [1, 0],
     // 连线标记的位置，start（头部）、end（尾部），该配置在showLineMarker配置为true时生效
     lineMarkerDir: 'end'
   },
@@ -92,7 +96,7 @@ export default {
     fontFamily: '微软雅黑, Microsoft YaHei',
     color: '#565656',
     fontSize: 16,
-    fontWeight: 'noraml',
+    fontWeight: 'normal',
     fontStyle: 'normal',
     lineHeight: 1.5,
     borderColor: '#549688',
@@ -103,6 +107,8 @@ export default {
     gradientStyle: false,
     startColor: '#549688',
     endColor: '#fff',
+    startDir: [0, 0],
+    endDir: [1, 0],
     lineMarkerDir: 'end'
   },
   // 三级及以下节点样式
@@ -114,7 +120,7 @@ export default {
     fontFamily: '微软雅黑, Microsoft YaHei',
     color: '#6a6d6c',
     fontSize: 14,
-    fontWeight: 'noraml',
+    fontWeight: 'normal',
     fontStyle: 'normal',
     lineHeight: 1.5,
     borderColor: 'transparent',
@@ -125,6 +131,8 @@ export default {
     gradientStyle: false,
     startColor: '#549688',
     endColor: '#fff',
+    startDir: [0, 0],
+    endDir: [1, 0],
     lineMarkerDir: 'end'
   },
   // 概要节点样式
@@ -136,7 +144,7 @@ export default {
     fontFamily: '微软雅黑, Microsoft YaHei',
     color: '#565656',
     fontSize: 16,
-    fontWeight: 'noraml',
+    fontWeight: 'normal',
     fontStyle: 'normal',
     lineHeight: 1.5,
     borderColor: '#549688',
@@ -146,19 +154,11 @@ export default {
     textDecoration: 'none',
     gradientStyle: false,
     startColor: '#549688',
-    endColor: '#fff'
+    endColor: '#fff',
+    startDir: [0, 0],
+    endDir: [1, 0]
   }
 }
-
-// 支持激活样式的属性
-// 简单来说，会改变节点大小的都不支持在激活时设置，为了性能考虑，节点切换激活态时不会重新计算节点大小
-export const supportActiveStyle = [
-  'fillColor',
-  'borderColor',
-  'borderWidth',
-  'borderDasharray',
-  'borderRadius'
-]
 
 // 检测主题配置是否是节点大小无关的
 const nodeSizeIndependenceList = [
@@ -187,7 +187,9 @@ const nodeSizeIndependenceList = [
   'gradientStyle',
   'lineRadius',
   'startColor',
-  'endColor'
+  'endColor',
+  'startDir',
+  'endDir'
 ]
 export const checkIsNodeSizeIndependenceConfig = config => {
   let keys = Object.keys(config)

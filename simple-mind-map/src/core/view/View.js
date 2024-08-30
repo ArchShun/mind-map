@@ -29,15 +29,16 @@ class View {
       this.fit()
     })
     // 拖动视图
-    this.mindMap.event.on('mousedown', () => {
+    this.mindMap.event.on('mousedown', e => {
       if (this.mindMap.opt.isDisableDrag) return
+      e.preventDefault()
       this.sx = this.x
       this.sy = this.y
     })
     this.mindMap.event.on('drag', (e, event) => {
       // 按住ctrl键拖动为多选
       // 禁用拖拽
-      if (e.ctrlKey || this.mindMap.opt.isDisableDrag) {
+      if (e.ctrlKey || e.metaKey || this.mindMap.opt.isDisableDrag) {
         return
       }
       if (this.firstDrag) {
@@ -72,7 +73,11 @@ class View {
         return customHandleMousewheel(e)
       }
       // 1.鼠标滚轮事件控制缩放
-      if (mousewheelAction === CONSTANTS.MOUSE_WHEEL_ACTION.ZOOM || e.ctrlKey) {
+      if (
+        mousewheelAction === CONSTANTS.MOUSE_WHEEL_ACTION.ZOOM ||
+        e.ctrlKey ||
+        e.metaKey
+      ) {
         if (disableMouseWheelZoom) return
         const { x: clientX, y: clientY } = this.mindMap.toPos(
           e.clientX,
@@ -106,24 +111,32 @@ class View {
         }
       } else {
         // 2.鼠标滚轮事件控制画布移动
-        const step = isTouchPad ? 10 : mousewheelMoveStep
+        let stepX = 0
+        let stepY = 0
+        if (isTouchPad) {
+          // 如果是触控板，那么直接使用触控板滑动距离
+          stepX = Math.abs(e.wheelDeltaX)
+          stepY = Math.abs(e.wheelDeltaY)
+        } else {
+          stepX = stepY = mousewheelMoveStep
+        }
         let mx = 0
         let my = 0
         // 上移
         if (dirs.includes(CONSTANTS.DIR.DOWN)) {
-          my = -step
+          my = -stepY
         }
         // 下移
         if (dirs.includes(CONSTANTS.DIR.UP)) {
-          my = step
+          my = stepY
         }
         // 右移
         if (dirs.includes(CONSTANTS.DIR.LEFT)) {
-          mx = step
+          mx = stepX
         }
         // 左移
         if (dirs.includes(CONSTANTS.DIR.RIGHT)) {
-          mx = -step
+          mx = -stepX
         }
         this.translateXY(mx, my)
       }
@@ -276,11 +289,12 @@ class View {
   }
 
   // 适应画布大小
-  fit() {
-    const { fitPadding } = this.mindMap.opt
+  fit(getRbox = () => {}, enlarge = false, fitPadding) {
+    fitPadding =
+      fitPadding === undefined ? this.mindMap.opt.fitPadding : fitPadding
     const draw = this.mindMap.draw
     const origTransform = draw.transform()
-    const rect = draw.rbox()
+    const rect = getRbox() || draw.rbox()
     const drawWidth = rect.width / origTransform.scaleX
     const drawHeight = rect.height / origTransform.scaleY
     const drawRatio = drawWidth / drawHeight
@@ -290,7 +304,7 @@ class View {
     const elRatio = elWidth / elHeight
     let newScale = 0
     let flag = ''
-    if (drawWidth <= elWidth && drawHeight <= elHeight) {
+    if (drawWidth <= elWidth && drawHeight <= elHeight && !enlarge) {
       newScale = 1
       flag = 1
     } else {
@@ -308,7 +322,7 @@ class View {
       newScale = newWidth / drawWidth
     }
     this.setScale(newScale)
-    const newRect = draw.rbox()
+    const newRect = getRbox() || draw.rbox()
     // 需要考虑画布容器距浏览器窗口左上角的距离
     newRect.x -= this.mindMap.elRect.left
     newRect.y -= this.mindMap.elRect.top

@@ -38,7 +38,7 @@ export default {
   computed: {
     ...mapState({
       isDark: state => state.localConfig.isDark
-    }),
+    })
   },
   created() {
     this.$bus.$on('data_change', this.onDataChange)
@@ -101,7 +101,7 @@ export default {
     background: #262a2e;
 
     .item {
-      color: hsla(0,0%,100%,.6);
+      color: hsla(0, 0%, 100%, 0.6);
     }
   }
 

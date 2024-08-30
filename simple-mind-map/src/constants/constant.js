@@ -174,6 +174,7 @@ export const CONSTANTS = {
   },
   LAYOUT: {
     LOGICAL_STRUCTURE: 'logicalStructure',
+    LOGICAL_STRUCTURE_LEFT: 'logicalStructureLeft',
     MIND_MAP: 'mindMap',
     ORGANIZATION_STRUCTURE: 'organizationStructure',
     CATALOG_ORGANIZATION: 'catalogOrganization',
@@ -234,6 +235,10 @@ export const CONSTANTS = {
     DEFAULT: 'default',
     NOT_ACTIVE: 'notActive',
     ACTIVE_ONLY: 'activeOnly'
+  },
+  TAG_POSITION: {
+    RIGHT: 'right',
+    BOTTOM: 'bottom'
   }
 }
 
@@ -250,6 +255,10 @@ export const layoutList = [
   {
     name: '逻辑结构图',
     value: CONSTANTS.LAYOUT.LOGICAL_STRUCTURE
+  },
+  {
+    name: '向左逻辑结构图',
+    value: CONSTANTS.LAYOUT.LOGICAL_STRUCTURE_LEFT
   },
   {
     name: '思维导图',
@@ -282,6 +291,7 @@ export const layoutList = [
 ]
 export const layoutValueList = [
   CONSTANTS.LAYOUT.LOGICAL_STRUCTURE,
+  CONSTANTS.LAYOUT.LOGICAL_STRUCTURE_LEFT,
   CONSTANTS.LAYOUT.MIND_MAP,
   CONSTANTS.LAYOUT.CATALOG_ORGANIZATION,
   CONSTANTS.LAYOUT.ORGANIZATION_STRUCTURE,
@@ -314,14 +324,12 @@ export const nodeDataNoStylePropList = [
   'associativeLinePoint',
   'associativeLineText',
   'attachmentUrl',
-  'attachmentName'
+  'attachmentName',
+  'notation',
+  'outerFrame',
+  'number',
+  'range'
 ]
-
-// 数据缓存
-export const commonCaches = {
-  measureCustomNodeContentSizeEl: null,
-  measureRichtextNodeTextSizeEl: null
-}
 
 // 错误类型
 export const ERROR_TYPES = {

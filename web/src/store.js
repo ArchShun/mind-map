@@ -21,13 +21,17 @@ const store = new Vuex.Store({
       // 是否开启手绘风格
       isUseHandDrawnLikeStyle: false,
       // 是否是暗黑模式
-      isDark: false, 
+      isDark: false
     },
     activeSidebar: '', // 当前显示的侧边栏
     isOutlineEdit: false, // 是否是大纲编辑模式
     isReadonly: false, // 是否只读
     isSourceCodeEdit: false, // 是否是源码编辑模式
-    extraTextOnExport: ''// 导出时底部添加的文字
+    extraTextOnExport: '', // 导出时底部添加的文字
+    supportHandDrawnLikeStyle: false, // 是否支持设置手绘风格
+    supportMark: false, // 是否支持标记
+    supportNumbers: false, // 是否支持编号
+    isDragOutlineTreeNode: false // 当前是否正在拖拽大纲树的节点
   },
   mutations: {
     // 设置思维导图数据
@@ -72,6 +76,26 @@ const store = new Vuex.Store({
     // 设置导出时底部添加的文字
     setExtraTextOnExport(state, data) {
       state.extraTextOnExport = data
+    },
+
+    // 设置是否支持手绘风格
+    setSupportHandDrawnLikeStyle(state, data) {
+      state.supportHandDrawnLikeStyle = data
+    },
+
+    // 设置是否支持标记
+    setSupportMark(state, data) {
+      state.supportMark = data
+    },
+
+    // 设置是否支持编号
+    setSupportNumbers(state, data) {
+      state.supportNumbers = data
+    },
+
+    // 设置树节点拖拽
+    setIsDragOutlineTreeNode(state, data) {
+      state.isDragOutlineTreeNode = data
     }
   },
   actions: {

@@ -8,6 +8,9 @@
       visibility: show ? 'visible' : 'hidden'
     }"
     @click.stop
+    @mousedown.stop
+    @mousemove.stop
+    @mouseup.stop
   ></div>
 </template>
 
@@ -22,6 +25,14 @@ import '@toast-ui/editor/dist/toastui-editor-viewer.css'
  */
 export default {
   name: 'NodeNoteContentShow',
+  props: {
+    mindMap: {
+      type: Object,
+      default() {
+        return null
+      }
+    }
+  },
   data() {
     return {
       editor: null,
@@ -39,8 +50,10 @@ export default {
     this.$bus.$on('scale', this.onScale)
     this.$bus.$on('translate', this.onScale)
     this.$bus.$on('svg_mousedown', this.hideNoteContent)
+    this.$bus.$on('expand_btn_click', this.hideNoteContent)
   },
   mounted() {
+    this.mindMap.el.appendChild(this.$refs.noteContentViewer)
     this.initEditor()
   },
   beforeDestroy() {
@@ -51,14 +64,24 @@ export default {
     this.$bus.$off('scale', this.onScale)
     this.$bus.$off('translate', this.onScale)
     this.$bus.$off('svg_mousedown', this.hideNoteContent)
+    this.$bus.$off('expand_btn_click', this.hideNoteContent)
   },
   methods: {
     // 显示备注浮层
     onShowNoteContent(content, left, top, node) {
       this.node = node
       this.editor.setMarkdown(content)
+      this.handleALink()
       this.updateNoteContentPosition(left, top)
       this.show = true
+    },
+
+    // 超链接新窗口打开
+    handleALink() {
+      const list = this.$refs.noteContentViewer.querySelectorAll('a')
+      Array.from(list).forEach(a => {
+        a.setAttribute('target', '_blank')
+      })
     },
 
     // 更新位置

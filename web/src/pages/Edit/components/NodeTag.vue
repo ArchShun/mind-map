@@ -24,7 +24,7 @@
           backgroundColor: generateColorByContent(item)
         }"
       >
-        {{ item }}
+        {{ typeof item === 'string' ? item : item.text }}
         <div class="delBtn" @click="del(index)">
           <span class="iconfont iconshanchu"></span>
         </div>
@@ -102,7 +102,9 @@ export default {
      * @Desc: 添加
      */
     add() {
-      this.tagArr.push(this.tag)
+      const text = this.tag.trim()
+      if (!text) return
+      this.tagArr.push(text)
       this.tag = ''
     },
 

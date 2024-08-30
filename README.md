@@ -13,7 +13,7 @@
 
 1.一个 js 思维导图库，不依赖任何框架，可以使用它来快速完成 Web 思维导图产品的开发。
 
-开发文档：[https://wanglin2.github.io/mind-map/#/doc/zh/](https://wanglin2.github.io/mind-map/#/doc/zh/)。
+开发文档：[https://wanglin2.github.io/mind-map-docs/](https://wanglin2.github.io/mind-map-docs/)。
 
 2.一个 Web 思维导图，基于思维导图库、Vue2.x、ElementUI 开发，可以操作电脑本地文件，可以当做一个在线版思维导图应用使用，也可以自部署和二次开发。
 
@@ -25,19 +25,34 @@ Github：[releases](https://github.com/wanglin2/mind-map/releases)。百度云�
 
 > 客户端版本会落后于在线版本，尝试最新功能请优先使用在线版。
 
+【云存储版本】如果你需要带后端的云存储版本，可以尝试我们开发的另一个项目[理想文档](https://github.com/wanglin2/lx-doc)。
+
 # 特性
 
 - [x] 插件化架构，除核心功能外，其他功能作为插件提供，按需使用，减小打包体积
-- [x] 支持逻辑结构图、思维导图、组织结构图、目录组织图、时间轴（横向、竖向）、鱼骨图等结构
+- [x] 支持逻辑结构图（向左、向右逻辑结构图）、思维导图、组织结构图、目录组织图、时间轴（横向、竖向）、鱼骨图等结构
 - [x] 内置多种主题，允许高度自定义样式，支持注册新主题
 - [x] 节点内容支持文本（普通文本、富文本）、图片、图标、超链接、备注、标签、概要、数学公式
-- [x] 节点支持拖拽（拖拽移动、自由调整）、多种节点形状，支持使用 DDM 完全自定义节点内容
+- [x] 节点支持拖拽（拖拽移动、自由调整）、多种节点形状；支持扩展节点内容、支持使用 DDM 完全自定义节点内容
 - [x] 支持画布拖动、缩放
 - [x] 支持鼠标按键拖动选择和 Ctrl+左键两种多选节点方式
-- [x] 支持导出为`json`、`png`、`svg`、`pdf`、`markdown`、`xmind`，支持从`json`、`xmind`、`markdown`导入
-- [x] 支持快捷键、前进后退、关联线、搜索替换、小地图、水印、滚动条
+- [x] 支持导出为`json`、`png`、`svg`、`pdf`、`markdown`、`xmind`、`txt`，支持从`json`、`xmind`、`markdown`导入
+- [x] 支持快捷键、前进后退、关联线、搜索替换、小地图、水印、滚动条、手绘风格、彩虹线条、标记、外框
 - [x] 提供丰富的配置，满足各种场景各种使用习惯
 - [x] 支持协同编辑
+- [x] 支持演示模式
+
+官方提供了如下插件，可根据需求按需引入（某个功能不生效大概率是因为你没有引入对应的插件），具体使用方式请查看文档：
+
+> RichText（节点富文本插件）、Select（鼠标多选节点插件）、Drag（节点拖拽插件）、AssociativeLine（关联线插件）、Export（导出插件）、KeyboardNavigation（键盘导航插件）、MiniMap（小地图插件）、Watermark（水印插件）、TouchEvent（移动端触摸事件支持插件）、NodeImgAdjust（拖拽调整节点图片大小插件）、Search（搜索插件）、Painter（节点格式刷插件）、Scrollbar（滚动条插件）、Formula（数学公式插件）、Cooperate（协同编辑插件）、RainbowLines（彩虹线条插件）、Demonstrate（演示模式插件）、OuterFrame（外框插件）、HandDrawnLikeStyle（手绘风格插件）[收费]、Notation（节点标记插件）[收费]、Numbers（节点编号插件）[收费]
+
+本项目不会实现的特性：
+
+> 1.自由节点，即多个根节点；
+>
+> 2.概要节点后面继续添加节点；
+>
+> 如果你需要以上特性，那么本库可能无法满足你的需求。
 
 # 安装
 
@@ -80,25 +95,31 @@ const mindMap = new MindMap({
 
 即可得到一个思维导图。
 
-想要实现更多功能？可以查看[开发文档](https://wanglin2.github.io/mind-map/#/doc/zh/)。
+想要实现更多功能？可以查看[开发文档](https://wanglin2.github.io/mind-map-docs/)。
 
 # License
 
-[MIT](./LICENSE)。保留`mind-map`版权声明的情况下可随意商用。
+[MIT](./LICENSE)。保留`mind-map`版权声明的情况下可随意商用。如不想保留可联系作者。
 
 # 微信交流群
 
-群聊人数较多，无法通过二维码入群，可以微信添加`wanglinguanfang`拉你入群。
+一群已满，可以扫描如下二维码进入二群，如已过期，可以微信添加`wanglinguanfang`拉你入群。思维导图相关问题皆可在群里提问，不必私聊作者。
+
+<img src="./qrcode.jpg" style="width: 300px" />
 
 # star
 
-如果喜欢本项目，欢迎点个star，这对我们很重要。
+如果喜欢本项目，欢迎点个 star，这对我们很重要。
 
 [![Star History Chart](https://api.star-history.com/svg?repos=wanglin2/mind-map&type=Date)](https://star-history.com/#wanglin2/mind-map&Date)
 
+# 关于定制
+
+如果你有个性化的商用定制需求，可以联系我们，我们提供付费开发服务，无论前端、后端、还是部署，都可以帮你一站式搞定。
+
 # 请作者喝杯咖啡
 
-开源不易，如果本项目有帮助到你的话，可以考虑请作者喝杯咖啡~
+开源不易，如果本项目有帮助到你的话，可以考虑请作者喝杯咖啡，你的支持是开发者持续维护的最大动力~
 
 > 推荐使用支付宝，微信获取不到头像。转账请备注【思维导图】。
 
@@ -319,5 +340,125 @@ const mindMap = new MindMap({
     <span>
         <img src="./web/src/assets/avatar/default.png" style="width: 50px;height: 50px;" />
         <span>sunniberg</span>
+    </span>
+    <span>
+        <img src="./web/src/assets/avatar/在下青铜五.jpg" style="width: 50px;height: 50px;" />
+        <span>在下青铜五</span>
+    </span>
+    <span>
+        <img src="./web/src/assets/avatar/木星二号.jpg" style="width: 50px;height: 50px;" />
+        <span>木星二号</span>
+    </span>
+    <span>
+        <img src="./web/src/assets/avatar/阿晨.jpg" style="width: 50px;height: 50px;" />
+        <span>阿晨</span>
+    </span>
+    <span>
+        <img src="./web/src/assets/avatar/default.png" style="width: 50px;height: 50px;" />
+        <span>铁</span>
+    </span>
+    <span>
+        <img src="./web/src/assets/avatar/庆国.jpg" style="width: 50px;height: 50px;" />
+        <span>庆国</span>
+    </span>
+    <span>
+        <img src="./web/src/assets/avatar/Alex.jpg" style="width: 50px;height: 50px;" />
+        <span>Alex</span>
+    </span>
+    <span>
+        <img src="./web/src/assets/avatar/子豪.jpg" style="width: 50px;height: 50px;" />
+        <span>子豪</span>
+    </span>
+    <span>
+        <img src="./web/src/assets/avatar/宏涛.jpg" style="width: 50px;height: 50px;" />
+        <span>宏涛</span>
+    </span>
+    <span>
+        <img src="./web/src/assets/avatar/最多5个字.jpg" style="width: 50px;height: 50px;" />
+        <span>最多5个字</span>
+    </span>
+    <span>
+        <img src="./web/src/assets/avatar/雨馨.jpg" style="width: 50px;height: 50px;" />
+        <span>雨馨</span>
+    </span>
+    <span>
+        <img src="./web/src/assets/avatar/ZX.jpg" style="width: 50px;height: 50px;" />
+        <span>ZX</span>
+    </span>
+    <span>
+        <img src="./web/src/assets/avatar/峰.jpg" style="width: 50px;height: 50px;" />
+        <span>峰</span>
+    </span>
+    <span>
+        <img src="./web/src/assets/avatar/default.png" style="width: 50px;height: 50px;" />
+        <span>协成</span>
+    </span>
+    <span>
+        <img src="./web/src/assets/avatar/木木.jpg" style="width: 50px;height: 50px;" />
+        <span>木木</span>
+    </span>
+    <span>
+        <img src="./web/src/assets/avatar/好名字.jpg" style="width: 50px;height: 50px;" />
+        <span>好名字</span>
+    </span>
+    <span>
+        <img src="./web/src/assets/avatar/Kyle.jpg" style="width: 50px;height: 50px;" />
+        <span>Kyle</span>
+    </span>
+    <span>
+        <img src="./web/src/assets/avatar/lsytyrt.jpg" style="width: 50px;height: 50px;" />
+        <span>lsytyrt</span>
+    </span>
+    <span>
+        <img src="./web/src/assets/avatar/秀树因馨雨.jpg" style="width: 50px;height: 50px;" />
+        <span>秀树因馨雨</span>
+    </span>
+    <span>
+        <img src="./web/src/assets/avatar/buddy.jpg" style="width: 50px;height: 50px;" />
+        <span>buddy</span>
+    </span>
+    <span>
+        <img src="./web/src/assets/avatar/default.png" style="width: 50px;height: 50px;" />
+        <span>小川</span>
+    </span>
+    <span>
+        <img src="./web/src/assets/avatar/Tobin.jpg" style="width: 50px;height: 50px;" />
+        <span>Tobin</span>
+    </span>
+    <span>
+        <img src="./web/src/assets/avatar/夏虫不语冰.jpg" style="width: 50px;height: 50px;" />
+        <span>夏虫不语冰</span>
+    </span>
+    <span>
+        <img src="./web/src/assets/avatar/晴空.jpg" style="width: 50px;height: 50px;" />
+        <span>晴空</span>
+    </span>
+    <span>
+        <img src="./web/src/assets/avatar/default.png" style="width: 50px;height: 50px;" />
+        <span>黄泳</span>
+    </span>
+    <span>
+        <img src="./web/src/assets/avatar/ccccs.jpg" style="width: 50px;height: 50px;" />
+        <span>ccccs</span>
+    </span>
+    <span>
+        <img src="./web/src/assets/avatar/。.png" style="width: 50px;height: 50px;" />
+        <span>。</span>
+    </span>
+    <span>
+        <img src="./web/src/assets/avatar/Jeffrey.jpg" style="width: 50px;height: 50px;" />
+        <span>Jeffrey</span>
+    </span>
+    <span>
+        <img src="./web/src/assets/avatar/张文建.jpg" style="width: 50px;height: 50px;" />
+        <span>张文建</span>
+    </span>
+    <span>
+        <img src="./web/src/assets/avatar/炫.jpg" style="width: 50px;height: 50px;" />
+        <span>炫</span>
+    </span>
+    <span>
+        <img src="./web/src/assets/avatar/封弊者.jpg" style="width: 50px;height: 50px;" />
+        <span>封弊者</span>
     </span>
 </p>

@@ -1,13 +1,13 @@
 <template>
   <div class="editContainer" @dragenter.stop.prevent="onDragenter" @dragleave.stop.prevent @dragover.stop.prevent @drop.stop.prevent>
-    <div class="mindMapContainer" ref="mindMapContainer"></div>
+    <div class="mindMapContainer" id="mindMapContainer" ref="mindMapContainer"></div>
     <Count :mindMap="mindMap" v-if="!isZenMode"></Count>
-    <Navigator :mindMap="mindMap"></Navigator>
+    <Navigator v-if="mindMap" :mindMap="mindMap"></Navigator>
     <NavigatorToolbar :mindMap="mindMap" v-if="!isZenMode"></NavigatorToolbar>
     <OutlineSidebar :mindMap="mindMap"></OutlineSidebar>
     <Style v-if="!isZenMode"></Style>
     <BaseStyle :data="mindMapData" :mindMap="mindMap"></BaseStyle>
-    <Theme v-if="mindMap" :mindMap="mindMap"></Theme>
+    <Theme v-if="mindMap" :data="mindMapData" :mindMap="mindMap"></Theme>
     <Structure :mindMap="mindMap"></Structure>
     <ShortcutKey></ShortcutKey>
     <Contextmenu v-if="mindMap" :mindMap="mindMap"></Contextmenu>
@@ -48,10 +48,16 @@ import Painter from 'simple-mind-map/src/plugins/Painter.js'
 import ScrollbarPlugin from 'simple-mind-map/src/plugins/Scrollbar.js'
 import Formula from 'simple-mind-map/src/plugins/Formula.js'
 import RainbowLines from 'simple-mind-map/src/plugins/RainbowLines.js'
+import Demonstrate from 'simple-mind-map/src/plugins/Demonstrate.js'
+import OuterFrame from 'simple-mind-map/src/plugins/OuterFrame.js'
 // 协同编辑插件
 // import Cooperate from 'simple-mind-map/src/plugins/Cooperate.js'
 // 手绘风格插件，该插件为付费插件，详情请查看开发文档
 // import HandDrawnLikeStyle from 'simple-mind-map-plugin-handdrawnlikestyle'
+// 标记插件，该插件为付费插件，详情请查看开发文档
+// import Notation from 'simple-mind-map-plugin-notation'
+// 编号插件，该插件为付费插件，详情请查看开发文档
+// import Numbers from 'simple-mind-map-plugin-numbers'
 import OutlineSidebar from './OutlineSidebar'
 import Style from './Style'
 import BaseStyle from './BaseStyle'
@@ -87,6 +93,8 @@ import exampleData from 'simple-mind-map/example/exampleData'
 import FormulaSidebar from './FormulaSidebar.vue'
 import SourceCodeEdit from './SourceCodeEdit.vue'
 import NodeAttachment from './NodeAttachment.vue'
+import NodeOuterFrame from './NodeOuterFrame.vue'
+import NodeTagStyle from './NodeTagStyle.vue'
 
 // 注册插件
 MindMap.usePlugin(MiniMap)
@@ -104,6 +112,8 @@ MindMap.usePlugin(MiniMap)
   .usePlugin(Painter)
   .usePlugin(Formula)
   .usePlugin(RainbowLines)
+  .usePlugin(Demonstrate)
+  .usePlugin(OuterFrame)
 // .usePlugin(Cooperate) // 协同插件
 
 // 注册自定义主题
@@ -140,7 +150,9 @@ export default {
     Scrollbar,
     FormulaSidebar,
     SourceCodeEdit,
-    NodeAttachment
+    NodeAttachment,
+    NodeOuterFrame,
+    NodeTagStyle
   },
   data() {
     return {
@@ -161,7 +173,8 @@ export default {
         state.localConfig.useLeftKeySelectionRightKeyDrag,
       isUseHandDrawnLikeStyle: state =>
         state.localConfig.isUseHandDrawnLikeStyle,
-      extraTextOnExport: state => state.extraTextOnExport
+      extraTextOnExport: state => state.extraTextOnExport,
+      isDragOutlineTreeNode: state => state.isDragOutlineTreeNode
     })
   },
   watch: {
@@ -381,7 +394,34 @@ export default {
             cssText,
             height: 30
           }
+        },
+        expandBtnNumHandler: num => {
+          return num >= 100 ? '…' : num
         }
+        // createNodePrefixContent: (node) => {
+        //   const el = document.createElement('div')
+        //   el.style.width = '50px'
+        //   el.style.height = '50px'
+        //   el.style.background = 'red'
+        //   return {
+        //     el,
+        //     width: 50,
+        //     height: 50
+        //   }
+        // },
+        // createNodePostfixContent: node => {
+        //   const domparser = new DOMParser()
+        //   const doc = domparser.parseFromString(
+        //     '<b style="background-color: rgb(214, 239, 214);">白日依山尽</b>',
+        //     'text/html'
+        //   )
+        //   const el = doc.querySelector('b')
+        //   return {
+        //     el,
+        //     width: 50,
+        //     height: 50
+        //   }
+        // },
         // addContentToHeader: () => {
         //   const el = document.createElement('div')
         //   el.className = 'footer'
@@ -472,6 +512,17 @@ export default {
       if (this.openNodeRichText) this.addRichTextPlugin()
       if (this.isShowScrollbar) this.addScrollbarPlugin()
       if (this.isUseHandDrawnLikeStyle) this.addHandDrawnLikeStylePlugin()
+      if (typeof HandDrawnLikeStyle !== 'undefined') {
+        this.$store.commit('setSupportHandDrawnLikeStyle', true)
+      }
+      if (typeof Notation !== 'undefined') {
+        this.mindMap.addPlugin(Notation)
+        this.$store.commit('setSupportMark', true)
+      }
+      if (typeof Numbers !== 'undefined') {
+        this.mindMap.addPlugin(Numbers)
+        this.$store.commit('setSupportNumbers', true)
+      }
       this.mindMap.keyCommand.addShortcut('Control+s', () => {
         this.manualSave()
       })
@@ -513,6 +564,12 @@ export default {
       // 解析url中的文件
       if (hasFileURL) {
         this.$bus.$emit('handle_file_url')
+      }
+      // api/index.js文件使用
+      // 当正在编辑本地文件时通过该方法获取最新数据
+      Vue.prototype.getCurrentData = () => {
+        const fullData = this.mindMap.getData(true)
+        return { ...fullData, config: this.mindMapData.config }
       }
       // 协同测试
       this.cooperateTest()
@@ -766,7 +823,7 @@ export default {
       if (this.mindMap.cooperate && this.$route.query.userName) {
         this.mindMap.cooperate.setProvider(null, {
           roomName: 'demo-room',
-          signalingList: ['ws://10.16.83.118:4444']
+          signalingList: ['ws://localhost:4444']
         })
         this.mindMap.cooperate.setUserInfo({
           id: Math.random(),
@@ -784,6 +841,7 @@ export default {
 
     // 拖拽文件到页面导入
     onDragenter() {
+      if (this.isDragOutlineTreeNode) return
       this.showDragMask = true
     },
     onDragleave() {
@@ -793,6 +851,7 @@ export default {
       this.showDragMask = false
       const dt = e.dataTransfer
       const file = dt.files && dt.files[0]
+      if (!file) return
       this.$bus.$emit('importFile', file)
     }
   }

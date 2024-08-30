@@ -10,10 +10,14 @@
     </el-tooltip>
     <div class="scaleInfo">
       <input
+        ref="inputRef"
         type="text"
         v-model="scaleNum"
+        @input="onScaleNumInput"
         @change="onScaleNumChange"
         @focus="onScaleNumInputFocus"
+        @keydown.stop
+        @keyup.stop
       />%
     </div>
     <el-tooltip
@@ -52,12 +56,15 @@ export default {
   watch: {
     mindMap(val, oldVal) {
       if (val && !oldVal) {
-        this.mindMap.on('scale', scale => {
-          this.scaleNum = this.toPer(scale)
-        })
+        this.mindMap.on('scale', this.onScale)
+        this.mindMap.on('draw_click', this.onDrawClick)
         this.scaleNum = this.toPer(this.mindMap.view.scale)
       }
     }
+  },
+  beforeDestroy() {
+    this.mindMap.off('scale', this.onScale)
+    this.mindMap.off('draw_click', this.onDrawClick)
   },
   methods: {
     // 转换成百分数
@@ -80,6 +87,11 @@ export default {
       this.cacheScaleNum = this.scaleNum
     },
 
+    // 禁止输入非数字
+    onScaleNumInput() {
+      this.scaleNum = this.scaleNum.replace(/[^0-9]+/g, '')
+    },
+
     // 手动输入缩放倍数
     onScaleNumChange() {
       const scaleNum = Number(this.scaleNum)
@@ -90,6 +102,14 @@ export default {
         const cy = this.mindMap.height / 2
         this.mindMap.view.setScale(this.scaleNum / 100, cx, cy)
       }
+    },
+
+    onScale(scale) {
+      this.scaleNum = this.toPer(scale)
+    },
+
+    onDrawClick() {
+      if (this.$refs.inputRef) this.$refs.inputRef.blur()
     }
   }
 }

@@ -26,7 +26,8 @@ export default {
     nodeBorderType: 'Node border style',
     nodeUseLineStyle: 'Use only has bottom border style',
     otherConfig: 'Other config',
-    enableFreeDrag: 'Enable node free drag',
+    enableFreeDrag: 'Enable node free drag(Beta)',
+    openPerformance: 'Enable performance mode',
     watermark: 'Watermark',
     showWatermark: 'Is show watermark',
     onlyExport: 'Only export',
@@ -38,6 +39,7 @@ export default {
     watermarkAngle: 'Angle',
     watermarkTextOpacity: 'Text opacity',
     watermarkTextFontSize: 'Font size',
+    belowNode: 'Display below nodes',
     isEnableNodeRichText: 'Enable node rich text editing',
     mousewheelAction: 'Mouse wheel behavior',
     zoomView: 'Zoom view',
@@ -62,9 +64,10 @@ export default {
     isUseHandDrawnLikeStyle: 'Is use hand drawn like style',
     rootLineStartPos: 'Root line start pos',
     center: 'Center',
-    right: 'Right',
+    edge: 'Edge',
     rainbowLines: 'Rainbow lines',
-    notUseRainbowLines: 'Not use rainbow lines'
+    notUseRainbowLines: 'Not use rainbow lines',
+    outerFramePadding: 'Outer frame padding'
   },
   color: {
     moreColor: 'More color'
@@ -98,7 +101,17 @@ export default {
     removeHyperlink: 'Remove hyperlink',
     removeNote: 'Remove note',
     removeCustomStyles: 'Remove custom styles',
-    removeAllNodeCustomStyles: 'Remove all node custom styles'
+    removeAllNodeCustomStyles: 'Remove all node custom styles',
+    exportNodeToPng: 'Export node to png',
+    copyToClipboard: 'Copy to clipboard',
+    copyToSmm: 'SMM',
+    copyToJson: 'JSON',
+    copyToMarkdown: 'Markdown',
+    copyToTxt: 'Txt',
+    copyToPng: 'Png',
+    copySuccess: 'Copy success',
+    copyFail: 'Copy fail',
+    number: 'Number child nodes'
   },
   count: {
     words: 'Words',
@@ -138,6 +151,9 @@ export default {
     fullscreenShow: 'Full screen show',
     fullscreenEdit: 'Full screen edit'
   },
+  demonstrate: {
+    demonstrate: 'Enter demonstration mode'
+  },
   import: {
     title: 'Import',
     selectFile: 'Select file',
@@ -147,7 +163,8 @@ export default {
     notSelectTip: 'Please select the file to import',
     fileContentError: 'The file content is incorrect',
     importSuccess: 'Import success',
-    fileParsingFailed: 'File parsing failed'
+    fileParsingFailed: 'File parsing failed',
+    xmindCanvasSelectDialogTitle: 'Select the canvas to import'
   },
   navigatorToolbar: {
     openMiniMap: 'Open mini map',
@@ -221,7 +238,8 @@ export default {
     endColor: 'End',
     arrowDir: 'Arrow dir',
     arrowDirStart: 'Start',
-    arrowDirEnd: 'End'
+    arrowDirEnd: 'End',
+    direction: 'Direction'
   },
   theme: {
     title: 'Theme',
@@ -260,6 +278,7 @@ export default {
     painter: 'Painter',
     formula: 'Formula',
     attachment: 'Attachment',
+    outerFrame: 'Outer frame',
     more: 'More',
     selectFileTip: 'Please select a file',
     notSupportTip:
@@ -272,7 +291,11 @@ export default {
     defaultFileName: 'Mind map',
     creatingTip: 'Creating file',
     directory: 'Directory',
-    autoSaveLocalFileMessage: 'Local file [{name}] saved automatically',
+    autoSaveLocalFileMessage: 'Local file [{name}] saved automatically',,
+    newFileTip:
+      'Please export the currently edited file before creating a new one, Beware of content loss',
+    openFileTip:
+      'Please export the currently edited file before opening it, Beware of content loss'
   },
   edit: {
     newFeatureNoticeTitle: 'New feature reminder',
@@ -297,7 +320,8 @@ export default {
     replacePlaceholder: 'Please enter replacement content',
     replace: 'Replace',
     replaceAll: 'Replace all',
-    cancel: 'Cancel'
+    cancel: 'Cancel',
+    noResult: 'No result'
   },
   nodeIconSidebar: {
     title: 'Icon/Sticker',
@@ -326,7 +350,8 @@ export default {
     loading: 'Loading, please wait...'
   },
   sourceCodeEdit: {
-    sourceCodeTip: 'It is not recommended to modify the style in rich text mode because it requires synchronous modification of data and HTML structure.',
+    sourceCodeTip:
+      'It is not recommended to modify the style in rich text mode because it requires synchronous modification of data and HTML structure.',
     format: 'Format',
     copy: 'Copy',
     confirm: 'Complete',
@@ -338,5 +363,25 @@ export default {
   attachment: {
     deleteAttachment: 'Delete attachment',
     tip: 'The attachment function is only available on the client side'
+  },
+  annotation: {
+    mark: 'Mark',
+    show: 'Show mark',
+    type: 'Type',
+    color: 'Color',
+    lineWidth: 'Line width',
+    padding: 'Padding',
+    animate: 'Animate'
+  },
+  nodeOuterFrame: {
+    outerFrameSetting: 'Setting',
+    deleteOuterFrame: 'Delete outer frame',
+    boxStyle: 'Box style',
+    boxColor: 'Box color',
+    fillColor: 'Fill color'
+  },
+  nodeTagStyle: {
+    placeholder: 'Please enter the tag content',
+    delete: 'Delete this tag'
   }
 }
