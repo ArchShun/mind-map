@@ -58,6 +58,7 @@ class RichText {
     this.cacheEditingText = ''
     this.lostStyle = false
     this.isCompositing = false
+    this.latexAuto = { word: '', index: -1, list: [] }
     this.initOpt()
     this.extendQuill()
     this.appendCss()
@@ -857,7 +858,7 @@ class RichText {
     if (!this.node) return
     if (clear) {
       // 清除文本样式
-      [
+      ;[
         'fontFamily',
         'fontSize',
         'fontWeight',
